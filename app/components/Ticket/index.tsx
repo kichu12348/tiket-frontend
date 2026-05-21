@@ -1,14 +1,18 @@
-
+import React from "react"
 
 export default function GlassmorphismTicket({
-    size = "100%"
+    size = "100%",
+    style = {},
+}: {
+    size?: string;
+    style?: React.CSSProperties;
 }) {
 
     return (
         <svg width={size}
-            viewBox="0 0 680 520" role="img"
+            viewBox="150 10 330 500" role="img"
             xmlns="http://www.w3.org/2000/svg"
-            style={{}}>
+            style={style}>
             <defs>
                 <clipPath id="cardClip">
                     <path d="M190,30 h220 a18,18 0 0 1 18,18 v16 a14,14 0 0 0 0,28 v174 a14,14 0 0 0 0,28 v162 a18,18 0 0 1 -18,18 h-220 a18,18 0 0 1 -18,-18 v-162 a14,14 0 0 0 0,-28 v-174 a14,14 0 0 0 0,-28 v-16 a18,18 0 0 1 18,-18 z" />
@@ -77,14 +81,8 @@ export default function GlassmorphismTicket({
                     <rect x="172" y="30" width="336" height="3.5" fill="url(#topShine)" rx="2" style={{ "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
                     <rect x="172" y="30" width="3.5" height="460" fill="url(#leftEdge)" style={{ "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
 
-                    <rect x="172" y="260" width="336" height="1" fill="url(#dividerGrad)" style={{ "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
-
-                    <rect x="172" y="256" width="336" height="8" fill="rgba(0,0,0,0.18)" style={{ "fill": "rgba(0, 0, 0, 0.18)", "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
-
                     <circle cx="172" cy="264" r="14" fill="rgba(0,0,0,0.55)" style={{ "fill": "rgba(0, 0, 0, 0.55)", "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
                     <circle cx="508" cy="264" r="14" fill="rgba(0,0,0,0.55)" style={{ "fill": "rgba(0, 0, 0, 0.55)", "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
-
-                    <rect x="190" y="260" width="320" height="1.5" fill="rgba(255,255,255,0.12)" style={{ "fill": "rgba(255, 255, 255, 0.12)", "stroke": "none", "color": "rgb(255, 255, 255)", "strokeWidth": "1px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />
                 </g>
 
                 <path d="M190,30 h220 a18,18 0 0 1 18,18 v16 a14,14 0 0 0 0,28 v174 a14,14 0 0 0 0,28 v162 a18,18 0 0 1 -18,18 h-220 a18,18 0 0 1 -18,-18 v-162 a14,14 0 0 0 0,-28 v-174 a14,14 0 0 0 0,-28 v-16 a18,18 0 0 1 18,-18 z" fill="none" stroke="rgba(255,255,255,0.55)" strokeWidth="0.7" style={{ "fill": "none", "stroke": "rgba(255, 255, 255, 0.55)", "color": "rgb(255, 255, 255)", "strokeWidth": "0.7px", "strokeLinecap": "butt", "strokeLinejoin": "miter", "opacity": "1", "fontFamily": "&quot", "fontSize": "16px", "fontWeight": "400", "textAnchor": "start", "dominantBaseline": "auto" }} />

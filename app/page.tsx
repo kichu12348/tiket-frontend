@@ -34,7 +34,7 @@ export default function Home() {
 
         <div className={styles.rightColumn}>
           <div className={styles.ticketWrapper}>
-            <GlassmorphismTicket size="600px" />
+            <GlassmorphismTicket size="100%" />
           </div>
         </div>
       </main>

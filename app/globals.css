@@ -5,11 +5,18 @@
   --color-text-secondary: #9ea0a5;
   --color-accent-orange: #f48a58;
   --color-accent-blue: #7693b8;
-  --color-button-bg: #e6e8eb;
-  --color-button-text: #121316;
-  --color-card-bg: rgba(255, 255, 255, 0.05);
-  --color-card-border: rgba(255, 255, 255, 0.15);
-  --color-border: rgba(255, 255, 255, 0.1);
+  
+  /* Component Colors */
+  --color-text-muted: rgba(255, 255, 255, 0.5);
+  --color-btn-signin-bg: rgba(138, 162, 187, 0.1);
+  --color-btn-signin-hover: rgba(255, 255, 255, 0.1);
+  --color-btn-primary-bg: #f0f1f3;
+  --color-btn-primary-hover: #ffffff;
+  --color-btn-primary-text: #121316;
+  --color-divider: rgba(255, 255, 255, 0.15);
+  --color-border-light: rgba(255, 255, 255, 0.2);
+  --color-border-hover: rgba(255, 255, 255, 0.4);
+  --color-icon-bg-hover: rgba(255, 255, 255, 0.1);
 
   /* Background Glows */
   --glow-top-left: radial-gradient(circle at 15% 20%,
@@ -18,6 +25,64 @@
   --glow-bottom-right: radial-gradient(circle at 85% 85%,
       rgba(244, 138, 88, 0.12) 0%,
       transparent 45%);
+
+  /* Layout */
+  --layout-max-width: 1200px;
+  --layout-padding-x: 4rem;
+  --layout-padding-y: 2rem;
+  --header-padding-y: 1rem;
+  --section-margin-top: 2rem;
+
+  /* Typography */
+  --font-size-logo: 1.5rem;
+  --font-size-title: 4.5rem;
+  --font-size-desc: 1.1rem;
+  --font-size-btn: 1rem;
+  --font-size-btn-sm: 0.9rem;
+  --font-size-stat-num: 1.5rem;
+  --font-size-stat-label: 0.85rem;
+  
+  --line-height-title: 1.1;
+  --line-height-desc: 1.6;
+  
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing */
+  --spacing-xs: 0.3rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1.5rem;
+  --spacing-lg: 2.5rem;
+  --spacing-xl: 5rem;
+  --spacing-gap: 3rem;
+  
+  /* Radii */
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+  --radius-full: 50%;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --layout-padding-x: 2rem;
+    --font-size-title: 3.5rem;
+    --spacing-xl: 3rem;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --layout-padding-x: 1.5rem;
+    --layout-padding-y: 1.5rem;
+    
+    --font-size-title: 2.5rem;
+    --font-size-desc: 1rem;
+    
+    --spacing-gap: 2rem;
+    --section-margin-top: 1rem;
+  }
 }
 
 * {
