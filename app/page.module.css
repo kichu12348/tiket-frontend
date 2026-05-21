@@ -1,0 +1,139 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 4rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 0;
+}
+
+.logo {
+  font-size: 1.5rem;
+  font-weight: 700;
+  display: flex;
+  align-items: baseline;
+  letter-spacing: -0.03em;
+}
+
+.dot {
+  color: var(--color-accent-orange);
+}
+
+.signInBtn {
+  background: rgba(138, 162, 187, 0.1);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  backdrop-filter: blur(10px);
+  border: none;
+  outline: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.signInBtn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px) brightness(1.5);
+}
+
+.mainContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  margin-top: 2rem;
+  position: relative;
+}
+
+.leftColumn {
+  flex: 1;
+  padding-right: 2rem;
+  z-index: 10;
+}
+
+.title {
+  font-size: 4.5rem;
+  line-height: 1.1;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.title span {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.description {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
+  max-width: 450px;
+}
+
+.ctaGroup {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin-bottom: 5rem;
+}
+
+.primaryBtn {
+  background: #f0f1f3;
+  color: #121316;
+  border: none;
+  padding: 0.9rem 1.8rem;
+  border-radius: 8px;
+  font-weight: 500;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  transition: transform 0.2s, background 0.2s;
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  background: #ffffff;
+}
+
+.secondaryBtn {
+  background: transparent;
+  border: none;
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 400;
+  transition: opacity 0.2s;
+}
+
+.secondaryBtn:hover {
+  opacity: 0.8;
+}
+
+
+.rightColumn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.ticketWrapper {
+  position: relative;
+  z-index: 10;
+}
