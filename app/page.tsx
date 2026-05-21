@@ -15,10 +15,8 @@ export default function Home() {
       <main className={styles.mainContent}>
         <div className={styles.leftColumn}>
           <h1 className={styles.title}>
-            Events,<br />
-            made simple.<br />
-            Memories,<br />
-            made <span>unforgettable.</span>
+            Less time managing.<br />
+            More time <span>experiencing.</span>
           </h1>
           <p className={styles.description}>
             Create, manage and sell tickets for any kind of event.<br />
@@ -34,7 +32,7 @@ export default function Home() {
 
         <div className={styles.rightColumn}>
           <div className={styles.ticketWrapper}>
-            <GlassmorphismTicket size="100%" />
+            <GlassmorphismTicket />
           </div>
         </div>
       </main>
