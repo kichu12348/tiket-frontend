@@ -69,7 +69,11 @@
 }
 
 .title span {
-  color: var(--color-text-muted);
+  background: linear-gradient(to right, #f4a27e, #b886c5, #7ba0d2);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
 }
 
 .description {
