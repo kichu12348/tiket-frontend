@@ -37,7 +37,9 @@
   cursor: pointer;
   font-size: var(--font-size-btn-sm);
   font-weight: var(--font-weight-semibold);
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 }
 
 .signInBtn:hover {
@@ -103,7 +105,9 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  transition: transform 0.2s, background 0.2s;
+  transition:
+    transform 0.2s,
+    background 0.2s;
 }
 
 .primaryBtn:hover {
