@@ -2,17 +2,27 @@ import styles from "./LandingPage.module.css";
 import GlassmorphismTicket from "./Ticket";
 import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
+import { cookies } from "next/headers";
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("token")?.value;
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
         <div className={styles.logo}>
           Tiket<span className={styles.dot}>.</span>
         </div>
-        <Link href="/signin" className={styles.signInBtn}>
-          Sign In
-        </Link>
+        {token ? (
+          <Link href="/home" className={styles.avatarBtn} aria-label="Go to Home">
+            :)
+          </Link>
+        ) : (
+          <Link href="/signin" className={styles.signInBtn}>
+            Sign In
+          </Link>
+        )}
       </header>
 
       <main className={styles.mainContent}>

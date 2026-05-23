@@ -47,6 +47,26 @@
   backdrop-filter: blur(10px) brightness(1.5);
 }
 
+.avatarBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background-color: #ffd700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  color: #000;
+  font-weight: bold;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.avatarBtn:hover {
+  transform: scale(1.05);
+}
+
 .mainContent {
   display: flex;
   flex: 1;

@@ -171,8 +171,12 @@
   --color-text-secondary: #9ea0a5;
   --color-accent-orange: #f48a58;
   --color-accent-blue: #7693b8;
+  --color-black: #000000;
 
   /* Component Colors */
+  --color-bg-elevated: #1c1d2188;
+  --color-item-selected: rgba(255, 255, 255, 0.15);
+  --color-item-hover: rgba(255, 255, 255, 0.08);
   --color-text-muted: rgba(255, 255, 255, 0.5);
   --color-btn-signin-bg: rgba(138, 162, 187, 0.1);
   --color-btn-signin-hover: rgba(255, 255, 255, 0.1);
@@ -203,6 +207,23 @@
     rgba(255, 215, 0, 0.08) 0%,
     transparent 45%
   );
+
+  --gradient-top-bottom: linear-gradient(
+    to bottom,
+    var(--color-accent-blue) 0%,
+    transparent 40%
+  );
+
+  /* Soft UI Colors */
+  --color-soft-bg: rgba(255, 255, 255, 0.08);
+  --color-soft-bg-hover: rgba(255, 255, 255, 0.12);
+  --color-soft-bg-subtle: rgba(255, 255, 255, 0.05);
+  --color-soft-bg-active: rgba(255, 255, 255, 0.1);
+
+  /**/
+
+  --gray-900: rgba(255, 255, 255, 0.03);
+  --gray-950: rgba(255, 255, 255, 0.1);
 
   /* Layout */
   --layout-max-width: 1200px;
@@ -242,6 +263,18 @@
   --radius-sm: 8px;
   --radius-lg: 20px;
   --radius-full: 50%;
+
+  /*scollbar color*/
+  --scrollbar-bg-color: var(--color-bg-base);
+  --scrollbar-width: 6px;
+  --scrollbar-radius: 6px;
+  --scrollbar-hover-color: rgba(255, 255, 255, 0.3);
+  --scrollbar-track-color: transparent;
+
+  /*blurs*/
+  --blur-sm: 8px;
+  --blur-md: 16px;
+  --blur-lg: 24px;
 }
 
 @media (max-width: 1024px) {
@@ -266,16 +299,17 @@
 }
 
 body::-webkit-scrollbar {
-  width: 6px;
+  width: var(--scrollbar-width);
+  background-color: var(--scrollbar-bg-color);
 }
 
 body::-webkit-scrollbar-track {
-  background: transparent;
+  background: var(--scrollbar-track-color);
 }
 
 body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
+  background: var(--scrollbar-hover-color);
+  border-radius: var(--scrollbar-radius);
 }
 
 @media screen and (max-width: 768px) {
