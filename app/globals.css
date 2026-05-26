@@ -172,6 +172,7 @@
   --color-accent-orange: #f48a58;
   --color-accent-blue: #7693b8;
   --color-black: #000000;
+  --color-overlay: #00000080;
 
   /* Component Colors */
   --color-bg-elevated: #1c1d2188;

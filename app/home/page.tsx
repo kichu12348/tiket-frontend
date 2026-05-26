@@ -5,9 +5,9 @@ import Link from "next/link";
 import styles from "./Home.module.css";
 import { Search, Plus } from "lucide-react";
 import { BsCalendar4Week } from "react-icons/bs";
-import api from "@/lib/api";
 import { Event } from "@/types/event";
 import SkeletonList from "./Components/SkeletonList";
+import { getMyEvents } from "./api/events";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<"upcoming" | "past">("upcoming");
@@ -19,8 +19,8 @@ export default function Home() {
       try {
         setLoading(true);
         // Fetch user's events
-        const response = await api.get("/api/events/me");
-        setEvents(response.data);
+        const data = await getMyEvents();
+        setEvents(data);
       } catch (error) {
         console.error("Failed to fetch events:", error);
       } finally {

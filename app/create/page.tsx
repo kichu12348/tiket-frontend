@@ -3,32 +3,50 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FastAverageColor } from "fast-average-color";
-import { ImagePlus, Globe, LayoutTemplate, Shuffle, MapPin, Ticket, Users, CheckCircle, Type } from "lucide-react";
+import {
+  ImagePlus,
+  Globe,
+  LayoutTemplate,
+  Shuffle,
+  MapPin,
+  Ticket,
+  Users,
+  CheckCircle,
+  Type,
+} from "lucide-react";
 import styles from "./Create.module.css";
 import api from "@/lib/api";
 
-// Custom Luma-style components
+// Custom components
 import DatePicker from "./components/DatePicker";
 import TimePicker from "./components/TimePicker";
 import TimezonePicker from "./components/TimezonePicker";
+import LocationPicker from "./components/LocationPicker";
+import DescriptionModal from "./components/DescriptionModal";
 
 export default function CreateEventPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
+
   // State
   const [bgColor, setBgColor] = useState<string>("");
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [title, setTitle] = useState("");
-  
+
   // Date/Time State
   const [startDate, setStartDate] = useState(new Date().toISOString());
-  const [endDate, setEndDate] = useState(new Date(Date.now() + 3600000).toISOString());
+  const [endDate, setEndDate] = useState(
+    new Date(Date.now() + 3600000).toISOString(),
+  );
   const [timezone, setTimezone] = useState("GMT+05:30");
 
-  const [locationType, setLocationType] = useState<"online" | "offline">("offline");
+  const [locationType, setLocationType] = useState<
+    "online" | "offline" | "hybrid"
+  >("offline");
   const [locationDetails, setLocationDetails] = useState("");
+  const [virtualLink, setVirtualLink] = useState("");
   const [description, setDescription] = useState("");
+  const [isDescModalOpen, setIsDescModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize FastAverageColor
@@ -55,19 +73,29 @@ export default function CreateEventPage() {
     try {
       setIsSubmitting(true);
 
+      let finalLocationDetails = locationDetails;
+      if (locationType === "online") {
+        finalLocationDetails = virtualLink;
+      } else if (locationType === "hybrid") {
+        finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
+      }
+
       const payload = {
         title: title || "Untitled Event",
         startDate,
         endDate,
         locationType,
-        locationDetails: locationDetails || "TBA",
+        locationDetails: finalLocationDetails || "TBA",
         description: description,
-        coverImage: coverImageUrl || "", 
+        coverImage: coverImageUrl || "",
+        color: bgColor || "#000000",
         status: "published",
       };
 
-      await api.post("/api/events", payload);
-      router.push("/home");
+      console.log(JSON.stringify(payload, null, 2));
+
+      // await api.post("/api/events", payload);
+      // router.push("/home");
     } catch (error) {
       console.error("Failed to create event:", error);
       alert("Failed to create event. Please check inputs.");
@@ -113,7 +141,7 @@ export default function CreateEventPage() {
               onChange={handleImageUpload}
             />
           </div>
-          
+
           <div style={{ display: "flex", gap: "0.5rem" }}>
             <div className={styles.themeSelector} style={{ flex: 1 }}>
               <div className={styles.themeInfo}>
@@ -174,7 +202,7 @@ export default function CreateEventPage() {
                       <TimePicker date={startDate} onChange={setStartDate} />
                     </div>
                   </div>
-                  
+
                   <div className={styles.timeRow}>
                     <span className={styles.timeLabel}>End</span>
                     <div className={styles.pickersBox}>
@@ -197,13 +225,16 @@ export default function CreateEventPage() {
                 <MapPin size={18} />
               </div>
               <div className={styles.inputGroupCol}>
-                <span className={styles.mainInputLabel}>Add Event Location</span>
-                <input
-                  type="text"
-                  placeholder="Offline location or virtual link"
-                  className={styles.subInput}
-                  value={locationDetails}
-                  onChange={(e) => setLocationDetails(e.target.value)}
+                <span className={styles.mainInputLabel}>
+                  Add Event Location
+                </span>
+                <LocationPicker
+                  locationType={locationType}
+                  locationDetails={locationDetails}
+                  virtualLink={virtualLink}
+                  onChangeLocationType={setLocationType}
+                  onChangeLocationDetails={setLocationDetails}
+                  onChangeVirtualLink={setVirtualLink}
                 />
               </div>
             </div>
@@ -211,19 +242,36 @@ export default function CreateEventPage() {
 
           {/* Description Block */}
           <div className={styles.formBlock}>
-            <div className={styles.formRow} style={{ alignItems: 'flex-start', paddingBottom: '1rem' }}>
-              <div className={styles.iconCol} style={{ marginTop: '0.2rem' }}>
+            <div
+              className={styles.formRow}
+              style={{ alignItems: "flex-start", paddingBottom: "1rem" }}
+            >
+              <div className={styles.iconCol} style={{ marginTop: "0.2rem" }}>
                 <Type size={18} />
               </div>
               <div className={styles.inputGroupCol}>
                 <span className={styles.mainInputLabel}>Add Description</span>
-                <textarea
-                  placeholder="Write something..."
+                <div 
                   className={styles.subInput}
-                  style={{ minHeight: '60px', marginTop: '0.25rem' }}
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                />
+                  style={{ 
+                    minHeight: "60px", 
+                    marginTop: "0.25rem", 
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "flex-start",
+                    padding: "0.75rem",
+                    color: description ? "var(--color-text-primary)" : "rgba(255, 255, 255, 0.4)",
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word"
+                  }}
+                  onClick={() => setIsDescModalOpen(true)}
+                >
+                  {description ? (
+                    <div dangerouslySetInnerHTML={{ __html: description }} />
+                  ) : (
+                    "Write something..."
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -240,7 +288,7 @@ export default function CreateEventPage() {
                 <span className={styles.valueInput}>Free</span>
               </div>
             </div>
-            
+
             <div className={styles.optionRow}>
               <div className={styles.iconCol}>
                 <CheckCircle size={18} />
@@ -292,6 +340,13 @@ export default function CreateEventPage() {
           </button>
         </div>
       </div>
+
+      <DescriptionModal
+        isOpen={isDescModalOpen}
+        initialValue={description}
+        onClose={() => setIsDescModalOpen(false)}
+        onSave={(val) => setDescription(val)}
+      />
     </div>
   );
 }

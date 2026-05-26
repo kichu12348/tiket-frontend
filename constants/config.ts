@@ -16,4 +16,8 @@ export const API_ENDPOINTS = {
       LOGOUT: "/api/auth/logout",
     },
   },
+  EVENTS: {
+    ME: "/api/events/me",
+    CREATE: "/api/events/create",
+  },
 };
