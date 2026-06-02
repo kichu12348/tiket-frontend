@@ -7,13 +7,20 @@
 .triggerBtn {
   background: transparent;
   border: none;
-  color: var(--color-text-primary);
+  color: var(--color-text-soft);
   font-size: 0.95rem;
   font-family: inherit;
   cursor: pointer;
-  text-align: center;
+  text-align: left;
+  width: 90px;
   padding: 0.5rem 0.75rem;
   white-space: nowrap;
+  transition: background 0.15s;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.triggerBtn:hover {
+  background: var(--color-soft-bg);
 }
 
 .popover {
@@ -24,7 +31,7 @@
   background: var(--color-bg-elevated);
   border-radius: var(--radius-lg);
   backdrop-filter: blur(var(--blur-md));
-  padding: 0.5rem;
+  padding: 0.5rem 0.35rem;
   width: 140px;
   max-height: 250px;
   z-index: 50;

@@ -1,28 +1,31 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { FastAverageColor } from "fast-average-color";
 import {
   ImagePlus,
   Globe,
-  LayoutTemplate,
-  Shuffle,
+  Lock,
   MapPin,
-  Ticket,
   Users,
   CheckCircle,
   Type,
+  CalendarClock,
+  CalendarCheck,
 } from "lucide-react";
 import styles from "./Create.module.css";
-import api from "@/lib/api";
+import { getSignedUrl, uploadToCDN, createEvent } from "./api/events";
 
 // Custom components
-import DatePicker from "./components/DatePicker";
-import TimePicker from "./components/TimePicker";
-import TimezonePicker from "./components/TimezonePicker";
+import DateRangeBlock from "./components/DateRangeBlock";
+import FontPicker from "./components/FontPicker";
 import LocationPicker from "./components/LocationPicker";
 import DescriptionModal from "./components/DescriptionModal";
+import DOMPurify from "isomorphic-dompurify";
+import Dropdown from "./components/Dropdown";
+import Switch from "./components/Switch";
+import { toast } from "sonner";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -31,14 +34,24 @@ export default function CreateEventPage() {
   // State
   const [bgColor, setBgColor] = useState<string>("");
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
+  const [titleFont, setTitleFont] = useState("'Inter', sans-serif");
 
   // Date/Time State
   const [startDate, setStartDate] = useState(new Date().toISOString());
   const [endDate, setEndDate] = useState(
     new Date(Date.now() + 3600000).toISOString(),
   );
-  const [timezone, setTimezone] = useState("GMT+05:30");
+  const [timezone, setTimezone] = useState(
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  );
+
+  // Registration Date/Time State
+  const [regStartDate, setRegStartDate] = useState(new Date().toISOString());
+  const [regEndDate, setRegEndDate] = useState(
+    new Date(Date.now() + 86400000).toISOString(),
+  );
 
   const [locationType, setLocationType] = useState<
     "online" | "offline" | "hybrid"
@@ -48,6 +61,9 @@ export default function CreateEventPage() {
   const [description, setDescription] = useState("");
   const [isDescModalOpen, setIsDescModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [requireApproval, setRequireApproval] = useState(false);
+  const [capacity, setCapacity] = useState("");
+  const [visibility, setVisibility] = useState<"public" | "private">("public");
 
   // Initialize FastAverageColor
   const fac = new FastAverageColor();
@@ -55,6 +71,7 @@ export default function CreateEventPage() {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setCoverImageFile(file);
       const url = URL.createObjectURL(file);
       setCoverImageUrl(url);
 
@@ -73,6 +90,42 @@ export default function CreateEventPage() {
     try {
       setIsSubmitting(true);
 
+      // --- VALIDATIONS ---
+      if (!title.trim()) {
+        toast.error("Event title is required.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (end <= start) {
+        toast.error("Event end date must be after the start date.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      const rStart = new Date(regStartDate);
+      const rEnd = new Date(regEndDate);
+      if (rEnd <= rStart) {
+        toast.error("Registration end date must be after the start date.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (rEnd > end) {
+        toast.error("Registration cannot end after the event has ended.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (capacity && parseInt(capacity, 10) <= 0) {
+        toast.error("Capacity must be a valid number greater than 0.");
+        setIsSubmitting(false);
+        return;
+      }
+      // -------------------
+
       let finalLocationDetails = locationDetails;
       if (locationType === "online") {
         finalLocationDetails = virtualLink;
@@ -80,25 +133,67 @@ export default function CreateEventPage() {
         finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
       }
 
+      let finalCoverImage = null;
+
+      if (coverImageFile) {
+        toast.info("Uploading cover image...");
+        try {
+          const { url: signedUrl, max_size } = await getSignedUrl(
+            coverImageFile.name,
+            coverImageFile.type.split("/")[1],
+          );
+
+          if (coverImageFile.size / 1024 / 1024 > max_size) {
+            toast.error(`Image size must be less than ${max_size}MB`);
+            setIsSubmitting(false);
+            return;
+          }
+
+          const { filename } = await uploadToCDN(signedUrl, coverImageFile);
+          finalCoverImage = filename;
+        } catch (err) {
+          console.error("Failed to upload image to CDN:", err);
+          toast.error("Failed to upload cover image. Please try again.");
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
       const payload = {
         title: title || "Untitled Event",
+        description,
+        coverImage: finalCoverImage,
+        locationType,
+        locationDetails:
+          locationType === "online" ? virtualLink : locationDetails,
         startDate,
         endDate,
-        locationType,
-        locationDetails: finalLocationDetails || "TBA",
-        description: description,
-        coverImage: coverImageUrl || "",
+        timezone,
+        registrationStart: regStartDate,
+        registrationEnd: regEndDate,
+        fontFamily: titleFont,
+        requireApproval,
+        capacity: capacity ? parseInt(capacity, 10) : null,
         color: bgColor || "#000000",
         status: "published",
       };
 
       console.log(JSON.stringify(payload, null, 2));
 
-      // await api.post("/api/events", payload);
-      // router.push("/home");
-    } catch (error) {
-      console.error("Failed to create event:", error);
-      alert("Failed to create event. Please check inputs.");
+      const res = await createEvent(payload as any);
+
+      if (res.status === 201) {
+        toast.success("Event created successfully!");
+        router.push(`/events/${res.data.id}`);
+      } else {
+        toast.error("Failed to create event. Please try again.");
+      }
+    } catch (error: any) {
+      console.error("Error creating event:", error);
+      const errorMessage =
+        error.response?.data?.error ||
+        "An error occurred while creating the event.";
+      toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -142,36 +237,33 @@ export default function CreateEventPage() {
             />
           </div>
 
-          <div style={{ display: "flex", gap: "0.5rem" }}>
-            <div className={styles.themeSelector} style={{ flex: 1 }}>
-              <div className={styles.themeInfo}>
-                <div className={styles.themeThumbnail}></div>
-                <div className={styles.themeLabel}>
-                  <span style={{ fontSize: "0.7rem" }}>Theme</span>
-                  <span className={styles.themeName}>Minimal</span>
-                </div>
-              </div>
-              <LayoutTemplate size={16} />
-            </div>
-            <div
-              className={styles.themeSelector}
-              style={{ width: "48px", justifyContent: "center" }}
-            >
-              <Shuffle size={16} />
-            </div>
-          </div>
+          <FontPicker value={titleFont} onChange={setTitleFont} />
         </div>
 
         {/* Right Pane */}
         <div className={styles.rightPane}>
           <div className={styles.topToggles}>
             <div className={styles.togglePill}>
-              <div className={styles.avatar}>:)</div>
-              <span>Personal Calendar</span>
-            </div>
-            <div className={styles.togglePill}>
-              <Globe size={14} />
-              <span>Public</span>
+              <Dropdown
+                options={[
+                  {
+                    label: "Public",
+                    value: "public",
+                    LeftComponent: <Globe size={14} />,
+                    desc: "Anyone can find this event",
+                  },
+                  {
+                    label: "Private",
+                    value: "private",
+                    LeftComponent: <Lock size={14} />,
+                    desc: "Only people with the link can register",
+                  },
+                ]}
+                value={visibility}
+                onChange={(value) =>
+                  setVisibility(value as "public" | "private")
+                }
+              />
             </div>
           </div>
 
@@ -179,100 +271,90 @@ export default function CreateEventPage() {
             type="text"
             placeholder="Event Name"
             className={styles.titleInput}
+            style={{ fontFamily: titleFont }}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          {/* Time Block (Luma Style) */}
-          <div className={styles.formBlock}>
-            <div className={styles.timeLayout}>
-              <div className={styles.timeInputsWrapper}>
-                {/* Timeline vertical connector */}
-                <div className={styles.timeConnector}>
-                  <div className={styles.dotFilled}></div>
-                  <div className={styles.line}></div>
-                  <div className={styles.dotEmpty}></div>
-                </div>
-
-                <div className={styles.timeRows}>
-                  <div className={styles.timeRow}>
-                    <span className={styles.timeLabel}>Start</span>
-                    <div className={styles.pickersBox}>
-                      <DatePicker date={startDate} onChange={setStartDate} />
-                      <TimePicker date={startDate} onChange={setStartDate} />
-                    </div>
-                  </div>
-
-                  <div className={styles.timeRow}>
-                    <span className={styles.timeLabel}>End</span>
-                    <div className={styles.pickersBox}>
-                      <DatePicker date={endDate} onChange={setEndDate} />
-                      <TimePicker date={endDate} onChange={setEndDate} />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Timezone right side */}
-              <TimezonePicker value={timezone} onChange={setTimezone} />
-            </div>
+          {/* Event Date & Time */}
+          <div className={styles.sectionLabel}>
+            <CalendarClock size={15} strokeWidth={1.8} />
+            <span>Event Date & Time</span>
           </div>
+          <DateRangeBlock
+            startDate={startDate}
+            endDate={endDate}
+            timezone={timezone}
+            onStartDateChange={setStartDate}
+            onEndDateChange={setEndDate}
+            onTimezoneChange={setTimezone}
+          />
+
+          {/* Registration Period */}
+          <div className={styles.sectionLabel}>
+            <CalendarCheck size={15} strokeWidth={1.8} />
+            <span>Registration Period</span>
+          </div>
+          <DateRangeBlock
+            startDate={regStartDate}
+            endDate={regEndDate}
+            timezone={timezone}
+            onStartDateChange={setRegStartDate}
+            onEndDateChange={setRegEndDate}
+            onTimezoneChange={setTimezone}
+            timezonePickerDisabled={true}
+          />
 
           {/* Location Block */}
+          <div className={styles.sectionLabel}>
+            <MapPin size={15} strokeWidth={1.8} />
+            <span>Location</span>
+          </div>
           <div className={styles.formBlock}>
-            <div className={styles.formRow}>
-              <div className={styles.iconCol}>
-                <MapPin size={18} />
-              </div>
-              <div className={styles.inputGroupCol}>
-                <span className={styles.mainInputLabel}>
-                  Add Event Location
-                </span>
-                <LocationPicker
-                  locationType={locationType}
-                  locationDetails={locationDetails}
-                  virtualLink={virtualLink}
-                  onChangeLocationType={setLocationType}
-                  onChangeLocationDetails={setLocationDetails}
-                  onChangeVirtualLink={setVirtualLink}
-                />
-              </div>
+            <div style={{ padding: "1rem" }}>
+              <LocationPicker
+                locationType={locationType}
+                locationDetails={locationDetails}
+                virtualLink={virtualLink}
+                onChangeLocationType={setLocationType}
+                onChangeLocationDetails={setLocationDetails}
+                onChangeVirtualLink={setVirtualLink}
+              />
             </div>
           </div>
 
           {/* Description Block */}
+          <div className={styles.sectionLabel}>
+            <Type size={15} strokeWidth={1.8} />
+            <span>Description</span>
+          </div>
           <div className={styles.formBlock}>
             <div
-              className={styles.formRow}
-              style={{ alignItems: "flex-start", paddingBottom: "1rem" }}
+              className={styles.subInput}
+              style={{
+                minHeight: "60px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "flex-start",
+                padding: "1rem",
+                color: description
+                  ? "var(--color-text-primary)"
+                  : "rgba(255, 255, 255, 0.4)",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+              onClick={() => setIsDescModalOpen(true)}
             >
-              <div className={styles.iconCol} style={{ marginTop: "0.2rem" }}>
-                <Type size={18} />
-              </div>
-              <div className={styles.inputGroupCol}>
-                <span className={styles.mainInputLabel}>Add Description</span>
-                <div 
-                  className={styles.subInput}
-                  style={{ 
-                    minHeight: "60px", 
-                    marginTop: "0.25rem", 
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "flex-start",
-                    padding: "0.75rem",
-                    color: description ? "var(--color-text-primary)" : "rgba(255, 255, 255, 0.4)",
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word"
+              {description ? (
+                <div
+                  className="prose"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(description),
                   }}
-                  onClick={() => setIsDescModalOpen(true)}
-                >
-                  {description ? (
-                    <div dangerouslySetInnerHTML={{ __html: description }} />
-                  ) : (
-                    "Write something..."
-                  )}
-                </div>
-              </div>
+                />
+              ) : (
+                "Write something..."
+              )}
             </div>
           </div>
 
@@ -281,41 +363,14 @@ export default function CreateEventPage() {
           <div className={styles.formBlock}>
             <div className={styles.optionRow}>
               <div className={styles.iconCol}>
-                <Ticket size={18} />
-              </div>
-              <div className={styles.optionGroup}>
-                <span className={styles.label}>Ticket Price</span>
-                <span className={styles.valueInput}>Free</span>
-              </div>
-            </div>
-
-            <div className={styles.optionRow}>
-              <div className={styles.iconCol}>
                 <CheckCircle size={18} />
               </div>
               <div className={styles.optionGroup}>
                 <span className={styles.label}>Require Approval</span>
-                <div
-                  style={{
-                    width: 36,
-                    height: 20,
-                    background: "rgba(255,255,255,0.2)",
-                    borderRadius: 10,
-                    position: "relative",
-                  }}
-                >
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: 2,
-                      top: 2,
-                      width: 16,
-                      height: 16,
-                      background: "#fff",
-                      borderRadius: "50%",
-                    }}
-                  ></div>
-                </div>
+                <Switch
+                  checked={requireApproval}
+                  onChange={setRequireApproval}
+                />
               </div>
             </div>
 
@@ -325,7 +380,14 @@ export default function CreateEventPage() {
               </div>
               <div className={styles.optionGroup}>
                 <span className={styles.label}>Capacity</span>
-                <span className={styles.valueInput}>Unlimited</span>
+                <input
+                  type="number"
+                  className={styles.valueInput}
+                  placeholder="Unlimited"
+                  value={capacity}
+                  onChange={(e) => setCapacity(e.target.value)}
+                  min="1"
+                />
               </div>
             </div>
           </div>

@@ -7,7 +7,6 @@
 
 .typeDropdown {
   width: max-content;
-  min-width: 240px;
 }
 
 .inputsWrapper {
@@ -25,7 +24,7 @@
 .inputField {
   display: flex;
   align-items: center;
-  border: 1px solid var(--color-border-light);
+  border: none;
   border-radius: var(--radius-sm);
   background-color: var(--gray-950);
   padding: 0.5rem 0.75rem;

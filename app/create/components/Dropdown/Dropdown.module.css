@@ -4,66 +4,113 @@
 }
 
 .triggerBtn {
-  background: transparent;
-  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   width: 100%;
-  color: var(--color-text-primary);
-  font-size: 0.95rem;
+  background: var(--color-soft-bg);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.5rem;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
   font-family: inherit;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
   text-align: left;
-  padding: 0.5rem 0;
   outline: none;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  transition: all 0.15s ease;
 }
 
-.placeholder {
+.triggerBtn:hover {
+  background: var(--color-soft-bg-hover);
+}
+
+.triggerBtn:focus-visible {
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.triggerBtn[data-empty="true"] {
   color: rgba(255, 255, 255, 0.4);
 }
 
-.icon {
+.chevron {
   color: var(--color-text-secondary);
-  transition: transform 0.2s;
-}
-
-.iconOpen {
-  transform: rotate(180deg);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .popover {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.35rem);
   left: 0;
-  margin-top: 0.25rem;
+  width: 100%;
+  min-width: 240px;
   background: var(--color-bg-elevated);
   backdrop-filter: blur(var(--blur-md));
-  border-radius: var(--radius-lg);
-  padding: 0.5rem 0;
-  width: 100%;
-  min-width: 200px;
-  z-index: 50;
+  border-radius: var(--radius-md);
   border: 1px solid var(--color-border-light);
+  padding: 0.25rem;
+  z-index: 50;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.popoverTop {
+  top: auto;
+  bottom: calc(100% + 0.35rem);
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.alignRight {
+  left: auto;
+  right: 0;
 }
 
 .optionItem {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.6rem 0.7rem;
   background: transparent;
   border: none;
+  border-radius: var(--radius-sm);
   color: var(--color-text-primary);
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   font-weight: var(--font-weight-medium);
   cursor: pointer;
   text-align: left;
-  transition: background 0.15s;
+  transition: background 0.12s;
 }
 
 .optionItem:hover {
   background: var(--color-item-hover);
+}
+
+.selected {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.checkIcon {
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+}
+
+.scrollArea {
+  gap: 0.3rem;
+}
+
+.scrollArea::-webkit-scrollbar {
+  width: 6px;
+}
+
+.scrollArea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollArea::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
 }

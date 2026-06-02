@@ -9,12 +9,15 @@ interface TimePickerProps {
 export default function TimePicker({ date, onChange }: TimePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  
+
   const selectedDate = date ? new Date(date) : new Date();
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -29,7 +32,10 @@ export default function TimePicker({ date, onChange }: TimePickerProps) {
         const d = new Date();
         d.setHours(h);
         d.setMinutes(m);
-        const timeStr = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const timeStr = d.toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         times.push({ h, m, timeStr });
       }
     }
@@ -46,7 +52,10 @@ export default function TimePicker({ date, onChange }: TimePickerProps) {
     setIsOpen(false);
   };
 
-  const formattedLabel = selectedDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formattedLabel = selectedDate.toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
   // Find index of currently selected time (roughly)
   const selectedHour = selectedDate.getHours();
@@ -54,9 +63,9 @@ export default function TimePicker({ date, onChange }: TimePickerProps) {
 
   return (
     <div className={styles.container} ref={containerRef}>
-      <button 
-        type="button" 
-        className={styles.triggerBtn} 
+      <button
+        type="button"
+        className={styles.triggerBtn}
         onClick={() => setIsOpen(!isOpen)}
       >
         {formattedLabel}
@@ -70,7 +79,7 @@ export default function TimePicker({ date, onChange }: TimePickerProps) {
               return (
                 <button
                   key={i}
-                  className={`${styles.timeItem} ${isSelected ? styles.selectedItem : ''}`}
+                  className={`${styles.timeItem} ${isSelected ? styles.selectedItem : ""}`}
                   onClick={() => handleSelect(t.h, t.m)}
                 >
                   {t.timeStr}

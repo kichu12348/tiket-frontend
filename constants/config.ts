@@ -1,4 +1,5 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!;
+export const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL!;
 
 export const API_ENDPOINTS = {
   BACKEND: {
@@ -18,6 +19,9 @@ export const API_ENDPOINTS = {
   },
   EVENTS: {
     ME: "/api/events/me",
-    CREATE: "/api/events/create",
+    CREATE: "/api/events",
+    GET_SIGNED_URL: "/api/events/upload/signed-url",
   },
 };
+
+export const getImageUrl = (filename: string) => `${CDN_URL}/image/${filename}`;

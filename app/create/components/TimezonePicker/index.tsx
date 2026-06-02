@@ -10,11 +10,13 @@ const POPULAR_TIMEZONES = timezones.map((tz) => ({
 
 interface TimezonePickerProps {
   value?: string;
+  disabled?: boolean;
   onChange?: (tz: string) => void;
 }
 
 export default function TimezonePicker({
-  value = "GMT+05:30",
+  value,
+  disabled = false,
   onChange,
 }: TimezonePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -41,8 +43,8 @@ export default function TimezonePicker({
   );
 
   const selectedTz =
-    POPULAR_TIMEZONES.find((t) => t.offset === value) || 
-    POPULAR_TIMEZONES.find((t) => t.offset === "GMT+05:30") || 
+    POPULAR_TIMEZONES.find((t) => t.offset === value) ||
+    POPULAR_TIMEZONES.find((t) => t.offset === "GMT+05:30") ||
     POPULAR_TIMEZONES[0];
 
   return (
@@ -50,7 +52,8 @@ export default function TimezonePicker({
       <button
         type="button"
         className={styles.triggerBtn}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => disabled || setIsOpen(!isOpen)}
+        disabled={disabled}
       >
         <Globe
           size={16}

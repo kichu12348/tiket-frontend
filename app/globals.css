@@ -147,7 +147,7 @@
       "Open Sans",
       "Helvetica Neue",
       sans-serif;
-    overflow-x: hidden;
+    overflow-x: clip;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -172,6 +172,21 @@
   --color-accent-orange: #f48a58;
   --color-accent-blue: #7693b8;
   --color-black: #000000;
+
+  --black-base-rgba: 19, 21, 23;
+
+  --bg-opacity-0: rgba(19, 21, 23, 0);
+  --bg-opacity-10: rgba(19, 21, 23, 0.1);
+  --bg-opacity-20: rgba(19, 21, 23, 0.2);
+  --bg-opacity-30: rgba(19, 21, 23, 0.3);
+  --bg-opacity-40: rgba(19, 21, 23, 0.4);
+  --bg-opacity-50: rgba(19, 21, 23, 0.5);
+  --bg-opacity-60: rgba(19, 21, 23, 0.6);
+  --bg-opacity-70: rgba(19, 21, 23, 0.7);
+  --bg-opacity-80: rgba(19, 21, 23, 0.8);
+  --bg-opacity-90: rgba(19, 21, 23, 0.9);
+  --bg-opacity-100: rgba(19, 21, 23, 1);
+
   --color-overlay: #00000080;
 
   /* Component Colors */
@@ -217,6 +232,7 @@
 
   /* Soft UI Colors */
   --color-soft-bg: rgba(255, 255, 255, 0.08);
+  --color-text-soft: rgba(255, 255, 255, 0.65);
   --color-soft-bg-hover: rgba(255, 255, 255, 0.12);
   --color-soft-bg-subtle: rgba(255, 255, 255, 0.05);
   --color-soft-bg-active: rgba(255, 255, 255, 0.1);
@@ -322,4 +338,85 @@ body::-webkit-scrollbar-thumb {
   *::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* --- Global Rich Text (TipTap) Styles --- */
+.prose {
+  color: inherit;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.prose p {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.prose h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
+}
+
+.prose h2 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-top: 1.2rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.3;
+}
+
+.prose ul {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+  list-style-type: disc;
+}
+
+.prose ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+  list-style-type: decimal;
+}
+
+.prose li {
+  margin-bottom: 0.2rem;
+}
+
+.prose li p {
+  margin: 0;
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--color-text-secondary);
+  padding-left: 1rem;
+  margin-left: 0;
+  margin-right: 0;
+  font-style: italic;
+  color: var(--color-text-secondary);
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-border-light);
+  margin: 1.5rem 0;
+}
+
+.prose img {
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  margin: 1rem 0;
+}
+
+.prose a {
+  color: #6ea8fe;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+
+.prose a:hover {
+  color: #9ec5fe;
 }

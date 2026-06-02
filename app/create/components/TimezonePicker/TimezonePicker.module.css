@@ -5,8 +5,7 @@
 }
 
 .triggerBtn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-soft-bg);
   border-radius: var(--radius-md);
   padding: 0.75rem 1rem;
   display: flex;
@@ -21,8 +20,13 @@
   transition: background 0.2s;
 }
 
-.triggerBtn:hover {
-  background: rgba(255, 255, 255, 0.1);
+.triggerBtn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.triggerBtn:hover:not(:disabled) {
+  background: var(--color-soft-bg-hover);
 }
 
 .tzInfo {
@@ -33,7 +37,7 @@
 
 .tzText {
   font-size: 0.95rem;
-  color: var(--color-text-primary);
+  color: var(--color-text-soft);
   font-weight: var(--font-weight-medium);
 }
 
@@ -76,7 +80,7 @@
 .header {
   padding: 0.75rem 1.25rem 0.25rem;
   font-size: 0.85rem;
-  color: var(--color-text-secondary);
+  color: var(--color-text-soft);
   font-weight: var(--font-weight-medium);
 }
 
@@ -118,7 +122,7 @@
 }
 
 .tzLabel {
-  color: var(--color-text-primary);
+  color: var(--color-text-soft);
   font-size: 0.95rem;
   font-weight: var(--font-weight-medium);
   white-space: nowrap;
@@ -128,7 +132,7 @@
 }
 
 .tzOffset {
-  color: var(--color-text-secondary);
+  color: var(--color-text-soft);
   font-size: 0.85rem;
   flex-shrink: 0;
 }

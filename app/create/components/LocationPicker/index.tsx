@@ -19,9 +19,9 @@ interface PlaceSuggestion {
 }
 
 const TYPE_OPTIONS = [
-  { label: "Offline (Physical Location)", value: "offline" },
-  { label: "Online (Virtual Event)", value: "online" },
-  { label: "Hybrid (Both)", value: "hybrid" },
+  { label: "Offline", value: "offline", desc: "Physical Location" },
+  { label: "Online", value: "online", desc: "Virtual Event" },
+  { label: "Hybrid", value: "hybrid", desc: "Physical + Virtual" },
 ];
 
 const libraries: "places"[] = ["places"];
@@ -39,7 +39,7 @@ export default function LocationPicker({
   onChangeLocationDetails,
   onChangeVirtualLink,
 }: LocationPickerProps) {
-  const { isLoaded, loadError } = useJsApiLoader({
+  const { isLoaded } = useJsApiLoader({
     id: "google-map-script",
     googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
     libraries,
@@ -139,6 +139,29 @@ export default function LocationPicker({
     mapRef.current = null;
   }, []);
 
+  const handleMapClick = useCallback(
+    (e: google.maps.MapMouseEvent) => {
+      if (!e.latLng) return;
+
+      const lat = e.latLng.lat();
+      const lng = e.latLng.lng();
+      const newPos = { lat, lng };
+
+      setMarkerPosition(newPos);
+      setMapCenter(newPos);
+
+      if (isLoaded && window.google?.maps?.Geocoder) {
+        const geocoder = new window.google.maps.Geocoder();
+        geocoder.geocode({ location: newPos }, (results, status) => {
+          if (status === "OK" && results && results[0]) {
+            onChangeLocationDetails(results[0].formatted_address);
+          }
+        });
+      }
+    },
+    [isLoaded, onChangeLocationDetails],
+  );
+
   const handleZoomIn = () => {
     if (mapRef.current) {
       mapRef.current.setZoom((mapRef.current.getZoom() || 15) + 1);
@@ -159,6 +182,8 @@ export default function LocationPicker({
         value={locationType}
         onChange={(val) => onChangeLocationType(val as any)}
         className={styles.typeDropdown}
+        alignSelf="flex-end"
+        popoverAlign="right"
       />
 
       {/* Input Fields based on type */}
@@ -212,151 +237,156 @@ export default function LocationPicker({
             </div>
 
             {/* Map Container outside the search box */}
-            {locationDetails && (
-              <div className={styles.mapContainer}>
-                {isLoaded ? (
-                  <>
-                    <GoogleMap
-                      mapContainerStyle={{ width: "100%", height: "100%" }}
-                      center={mapCenter}
-                      zoom={15}
-                      onLoad={onLoadMap}
-                      onUnmount={onUnmountMap}
-                      options={{
-                        disableDefaultUI: true,
-                        zoomControl: false,
-                        keyboardShortcuts: false,
-                        styles: [
-                          {
-                            elementType: "geometry",
-                            stylers: [{ color: "#212121" }],
-                          },
-                          {
-                            elementType: "labels.icon",
-                            stylers: [{ visibility: "off" }],
-                          },
-                          {
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#757575" }],
-                          },
-                          {
-                            elementType: "labels.text.stroke",
-                            stylers: [{ color: "#212121" }],
-                          },
-                          {
-                            featureType: "administrative",
-                            elementType: "geometry",
-                            stylers: [{ color: "#757575" }],
-                          },
-                          {
-                            featureType: "administrative.country",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#9e9e9e" }],
-                          },
-                          {
-                            featureType: "administrative.land_parcel",
-                            stylers: [{ visibility: "off" }],
-                          },
-                          {
-                            featureType: "administrative.locality",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#bdbdbd" }],
-                          },
-                          {
-                            featureType: "poi",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#757575" }],
-                          },
-                          {
-                            featureType: "poi.park",
-                            elementType: "geometry",
-                            stylers: [{ color: "#181818" }],
-                          },
-                          {
-                            featureType: "poi.park",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#616161" }],
-                          },
-                          {
-                            featureType: "poi.park",
-                            elementType: "labels.text.stroke",
-                            stylers: [{ color: "#1b1b1b" }],
-                          },
-                          {
-                            featureType: "road",
-                            elementType: "geometry.fill",
-                            stylers: [{ color: "#2c2c2c" }],
-                          },
-                          {
-                            featureType: "road",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#8a8a8a" }],
-                          },
-                          {
-                            featureType: "road.arterial",
-                            elementType: "geometry",
-                            stylers: [{ color: "#373737" }],
-                          },
-                          {
-                            featureType: "road.highway",
-                            elementType: "geometry",
-                            stylers: [{ color: "#3c3c3c" }],
-                          },
-                          {
-                            featureType: "road.highway.controlled_access",
-                            elementType: "geometry",
-                            stylers: [{ color: "#4e4e4e" }],
-                          },
-                          {
-                            featureType: "road.local",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#616161" }],
-                          },
-                          {
-                            featureType: "transit",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#757575" }],
-                          },
-                          {
-                            featureType: "water",
-                            elementType: "geometry",
-                            stylers: [{ color: "#000000" }],
-                          },
-                          {
-                            featureType: "water",
-                            elementType: "labels.text.fill",
-                            stylers: [{ color: "#3d3d3d" }],
-                          },
-                        ],
-                      }}
-                    >
-                      {markerPosition && <Marker position={markerPosition} />}
-                    </GoogleMap>
+            <div className={styles.mapContainer}>
+              {isLoaded ? (
+                <>
+                  <GoogleMap
+                    mapContainerStyle={{ width: "100%", height: "100%" }}
+                    center={mapCenter}
+                    zoom={15}
+                    onLoad={onLoadMap}
+                    onUnmount={onUnmountMap}
+                    onClick={handleMapClick}
+                    options={{
+                      disableDefaultUI: true,
+                      zoomControl: false,
+                      keyboardShortcuts: false,
+                      styles: [
+                        {
+                          elementType: "geometry",
+                          stylers: [{ color: "#212121" }],
+                        },
+                        {
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#757575" }],
+                        },
+                        {
+                          elementType: "labels.text.stroke",
+                          stylers: [{ color: "#212121" }],
+                        },
+                        {
+                          featureType: "administrative",
+                          elementType: "geometry",
+                          stylers: [{ color: "#757575" }],
+                        },
+                        {
+                          featureType: "administrative.country",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#9e9e9e" }],
+                        },
+                        {
+                          featureType: "administrative.land_parcel",
+                          stylers: [{ visibility: "off" }],
+                        },
+                        {
+                          featureType: "administrative.locality",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#bdbdbd" }],
+                        },
+                        {
+                          featureType: "poi",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#757575" }],
+                        },
+                        {
+                          featureType: "poi.park",
+                          elementType: "geometry",
+                          stylers: [{ color: "#181818" }],
+                        },
+                        {
+                          featureType: "poi.park",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#616161" }],
+                        },
+                        {
+                          featureType: "poi.park",
+                          elementType: "labels.text.stroke",
+                          stylers: [{ color: "#1b1b1b" }],
+                        },
+                        {
+                          featureType: "road",
+                          elementType: "geometry.fill",
+                          stylers: [{ color: "#2c2c2c" }],
+                        },
+                        {
+                          featureType: "road",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#8a8a8a" }],
+                        },
+                        {
+                          featureType: "road.arterial",
+                          elementType: "geometry",
+                          stylers: [{ color: "#373737" }],
+                        },
+                        {
+                          featureType: "road.highway",
+                          elementType: "geometry",
+                          stylers: [{ color: "#3c3c3c" }],
+                        },
+                        {
+                          featureType: "road.highway.controlled_access",
+                          elementType: "geometry",
+                          stylers: [{ color: "#4e4e4e" }],
+                        },
+                        {
+                          featureType: "road.local",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#616161" }],
+                        },
+                        {
+                          featureType: "transit",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#757575" }],
+                        },
+                        {
+                          featureType: "water",
+                          elementType: "geometry",
+                          stylers: [{ color: "#000000" }],
+                        },
+                        {
+                          featureType: "water",
+                          elementType: "labels.text.fill",
+                          stylers: [{ color: "#3d3d3d" }],
+                        },
+                        {
+                          featureType: "landscape.man_made",
+                          elementType: "geometry.fill",
+                          stylers: [{ color: "#2a2a2a" }],
+                        },
+                        {
+                          featureType: "landscape.man_made",
+                          elementType: "geometry.stroke",
+                          stylers: [{ color: "#3a3a3a" }, { weight: 1 }],
+                        },
+                      ],
+                    }}
+                  >
+                    {markerPosition && <Marker position={markerPosition} />}
+                  </GoogleMap>
 
-                    <div className={styles.customZoomControls}>
-                      <button
-                        type="button"
-                        className={styles.zoomBtn}
-                        onClick={handleZoomIn}
-                      >
-                        <Plus size={16} />
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.zoomBtn}
-                        onClick={handleZoomOut}
-                      >
-                        <Minus size={16} />
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <div style={{ padding: "1rem", color: "gray" }}>
-                    Loading interactive map...
+                  <div className={styles.customZoomControls}>
+                    <button
+                      type="button"
+                      className={styles.zoomBtn}
+                      onClick={handleZoomIn}
+                    >
+                      <Plus size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.zoomBtn}
+                      onClick={handleZoomOut}
+                    >
+                      <Minus size={16} />
+                    </button>
                   </div>
-                )}
-              </div>
-            )}
+                </>
+              ) : (
+                <div style={{ padding: "1rem", color: "gray" }}>
+                  Loading interactive map...
+                </div>
+              )}
+            </div>
           </>
         )}
 

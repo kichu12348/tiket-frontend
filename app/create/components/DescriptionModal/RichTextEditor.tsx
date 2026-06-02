@@ -33,6 +33,7 @@ export default function RichTextEditor({
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [modalUrl, setModalUrl] = useState("");
   const [modalLabel, setModalLabel] = useState("");
+  const [, setForceUpdate] = useState(0);
   const modalInputRef = useRef<HTMLInputElement>(null);
 
   const editor = useEditor({
@@ -47,6 +48,9 @@ export default function RichTextEditor({
     immediatelyRender: false,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
+    },
+    onTransaction: () => {
+      setForceUpdate((x) => x + 1);
     },
   });
 
@@ -126,6 +130,7 @@ export default function RichTextEditor({
       {/* Fixed Toolbar */}
       <div className={styles.toolbar} onMouseDown={(e) => e.preventDefault()}>
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("bold") ? styles.toolbarBtnActive : ""}`}
           onClick={() => editor.chain().focus().toggleBold().run()}
           title="Bold"
@@ -134,6 +139,7 @@ export default function RichTextEditor({
         </button>
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("italic") ? styles.toolbarBtnActive : ""}`}
           onClick={() => editor.chain().focus().toggleItalic().run()}
           title="Italic"
@@ -144,6 +150,7 @@ export default function RichTextEditor({
         <div className={styles.toolbarDivider} />
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("heading", { level: 1 }) ? styles.toolbarBtnActive : ""}`}
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 1 }).run()
@@ -154,6 +161,7 @@ export default function RichTextEditor({
         </button>
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("heading", { level: 2 }) ? styles.toolbarBtnActive : ""}`}
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
@@ -166,6 +174,7 @@ export default function RichTextEditor({
         <div className={styles.toolbarDivider} />
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("bulletList") ? styles.toolbarBtnActive : ""}`}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
           title="Bullet List"
@@ -174,6 +183,7 @@ export default function RichTextEditor({
         </button>
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("orderedList") ? styles.toolbarBtnActive : ""}`}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
           title="Numbered List"
@@ -184,6 +194,7 @@ export default function RichTextEditor({
         <div className={styles.toolbarDivider} />
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("blockquote") ? styles.toolbarBtnActive : ""}`}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
           title="Blockquote"
@@ -192,6 +203,7 @@ export default function RichTextEditor({
         </button>
 
         <button
+          type="button"
           className={styles.toolbarBtn}
           onClick={() => editor.chain().focus().setHorizontalRule().run()}
           title="Divider"
@@ -202,6 +214,7 @@ export default function RichTextEditor({
         <div className={styles.toolbarDivider} />
 
         <button
+          type="button"
           className={`${styles.toolbarBtn} ${editor.isActive("link") ? styles.toolbarBtnActive : ""}`}
           onClick={openLinkModal}
           title="Insert Link"
@@ -210,6 +223,7 @@ export default function RichTextEditor({
         </button>
 
         <button
+          type="button"
           className={styles.toolbarBtn}
           onClick={openImageModal}
           title="Insert Image"
