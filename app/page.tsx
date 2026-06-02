@@ -15,7 +15,11 @@ export default async function Home() {
           Tiket<span className={styles.dot}>.</span>
         </div>
         {token ? (
-          <Link href="/home" className={styles.avatarBtn} aria-label="Go to Home">
+          <Link
+            href="/home"
+            className={styles.avatarBtn}
+            aria-label="Go to Home"
+          >
             :)
           </Link>
         ) : (
@@ -39,9 +43,12 @@ export default async function Home() {
           </p>
 
           <div className={styles.ctaGroup}>
-            <button className={styles.primaryBtn}>
+            <Link
+              href={token ? "/create" : "/signin"}
+              className={styles.primaryBtn}
+            >
               Create Event <FiArrowRight size={20} />
-            </button>
+            </Link>
           </div>
         </div>
 
