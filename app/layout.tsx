@@ -48,7 +48,12 @@ export default function RootLayout({
               backdropFilter: "blur(var(--blur-md))",
               WebkitBackdropFilter: "blur(var(--blur-md))",
               border: "none",
-              color: "var(--color-text-primary)",
+            },
+            classNames: {
+              success: "!bg-green-600 !text-white",
+              error: "!bg-red-600 !text-white",
+              warning: "!bg-yellow-500 !text-black",
+              info: "!bg-[var(--bg-opacity-80)] !text-white",
             },
           }}
         />

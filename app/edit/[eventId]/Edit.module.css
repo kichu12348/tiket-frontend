@@ -108,6 +108,58 @@
   color: rgba(255, 255, 255, 0.2);
 }
 
+.slugInputWrapper {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-sm);
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 1.5rem;
+  width: max-content;
+  max-width: 100%;
+}
+
+.slugBase {
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.slugInput {
+  background: transparent;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 0.85rem;
+  outline: none;
+  width: 150px;
+}
+
+.slugInput::placeholder {
+  color: rgba(255, 255, 255, 0.2);
+}
+
+.slugSaveBtn {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--color-text-primary);
+  border: none;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  margin-left: 0.5rem;
+  transition: background 0.2s;
+}
+
+.slugSaveBtn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.slugSaveBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* Form Blocks */
 .formBlock {
   background: rgba(255, 255, 255, 0.05);
@@ -255,3 +307,76 @@
     font-size: 2.5rem;
   }
 }
+
+.modalBtnGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.modalActionBtn {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 1rem;
+  color: var(--color-text-primary);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modalActionBtn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-1px);
+}
+
+.iconCircle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.modalActionBtn:hover .iconCircle {
+  background: var(--color-text-primary);
+  color: #000;
+}
+
+.iconCircleDanger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 77, 79, 0.1);
+  border-radius: 50%;
+  color: #ff4d4f;
+  transition: all 0.2s ease;
+}
+
+.dangerBtn {
+  color: #ff4d4f;
+}
+
+.dangerBtn:hover {
+  background: rgba(255, 77, 79, 0.08);
+  border-color: rgba(255, 77, 79, 0.2);
+}
+
+.dangerBtn:hover .iconCircleDanger {
+  background: #ff4d4f;
+  color: #fff;
+}
+

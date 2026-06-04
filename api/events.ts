@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { API_ENDPOINTS, CDN_URL } from "@/constants/config";
-import { CreateEventPayload } from "@/types/event";
+import { CreateEventPayload, Event, UpdateEventPayload } from "@/types/event";
 
 export const getSignedUrl = async (filename: string, contentType: string) => {
   const response = await api.post(API_ENDPOINTS.EVENTS.GET_SIGNED_URL, {
@@ -34,12 +34,22 @@ export const createEvent = async (payload: CreateEventPayload) => {
   return response;
 };
 
-export const getEvent = async (id: string) => {
-  const response = await api.get(`/api/events/${id}`);
+export const updateEvent = async (
+  id: string,
+  payload: UpdateEventPayload,
+): Promise<Event> => {
+  const response = await api.patch(API_ENDPOINTS.EVENTS.UPDATE(id), payload);
   return response.data;
 };
 
-export const updateEvent = async (id: string, payload: Partial<CreateEventPayload>) => {
-  const response = await api.patch(`/api/events/${id}`, payload);
-  return response;
+export const updateEventSlug = async (id: string, slug: string): Promise<Event> => {
+  const response = await api.patch(API_ENDPOINTS.EVENTS.UPDATE_SLUG(id), {
+    slug,
+  });
+  return response.data;
+};
+
+export const getEvent = async (id: string): Promise<Event> => {
+  const response = await api.get(API_ENDPOINTS.EVENTS.GET(id));
+  return response.data;
 };

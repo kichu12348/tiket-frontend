@@ -2,7 +2,18 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import styles from "./LocationPicker.module.css";
 import Dropdown from "../Dropdown";
 import { MapPin, Link as LinkIcon, Plus, Minus } from "lucide-react";
-import { useJsApiLoader, GoogleMap, Marker } from "@react-google-maps/api";
+import {
+  APIProvider,
+  Map,
+  AdvancedMarker,
+  useMap,
+  useMapsLibrary,
+  MapMouseEvent,
+  MapControl,
+  ControlPosition,
+  ColorScheme,
+} from "@vis.gl/react-google-maps";
+import { GOOGLE_MAPS_API_KEY, MAP_ID } from "@/constants/config";
 
 interface LocationPickerProps {
   locationType: "online" | "offline" | "hybrid";
@@ -24,14 +35,12 @@ const TYPE_OPTIONS = [
   { label: "Hybrid", value: "hybrid", desc: "Physical + Virtual" },
 ];
 
-const libraries: "places"[] = ["places"];
-
 const defaultCenter = {
   lat: 10.004675902169992, // Default to Kochi
   lng: 76.30637841229771,
 };
 
-export default function LocationPicker({
+function LocationPickerInner({
   locationType,
   locationDetails,
   virtualLink,
@@ -39,11 +48,9 @@ export default function LocationPicker({
   onChangeLocationDetails,
   onChangeVirtualLink,
 }: LocationPickerProps) {
-  const { isLoaded } = useJsApiLoader({
-    id: "google-map-script",
-    googleMapsApiKey: process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-    libraries,
-  });
+  const map = useMap(MAP_ID);
+  const placesLib = useMapsLibrary("places");
+  const geocodingLib = useMapsLibrary("geocoding");
 
   const [mapCenter, setMapCenter] = useState(defaultCenter);
   const [markerPosition, setMarkerPosition] = useState<{
@@ -52,8 +59,34 @@ export default function LocationPicker({
   } | null>(null);
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [searchValue, setSearchValue] = useState("");
+  const [hasInitialized, setHasInitialized] = useState(false);
+  const [zoom, setZoom] = useState(12);
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<google.maps.Map | null>(null);
+
+  // Sync prop -> local state on mount or when locationDetails changes externally
+  useEffect(() => {
+    if (!locationDetails) {
+      setSearchValue("");
+      return;
+    }
+    try {
+      const parsed = JSON.parse(locationDetails);
+      if (parsed.address || parsed.name) {
+        setSearchValue(parsed.address || parsed.name);
+      }
+      if (parsed.lat && parsed.lng && !hasInitialized) {
+        const pos = { lat: parsed.lat, lng: parsed.lng };
+        setMapCenter(pos);
+        setMarkerPosition(pos);
+        setHasInitialized(true);
+      }
+    } catch {
+      // Fallback if it's just a raw string
+      setSearchValue(locationDetails);
+    }
+  }, [locationDetails, hasInitialized]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -70,21 +103,16 @@ export default function LocationPicker({
 
   const fetchSuggestions = useCallback(
     async (input: string) => {
-      if (
-        !input ||
-        !isLoaded ||
-        !window.google?.maps?.places?.AutocompleteSuggestion
-      ) {
+      if (!input || !placesLib || !(placesLib as any).AutocompleteSuggestion) {
         setSuggestions([]);
         return;
       }
 
       try {
         const request = { input };
-        const response =
-          await window.google.maps.places.AutocompleteSuggestion.fetchAutocompleteSuggestions(
-            request,
-          );
+        const response = await (
+          placesLib as any
+        ).AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
 
         if (!response.suggestions || response.suggestions.length === 0) {
           setSuggestions([]);
@@ -101,82 +129,96 @@ export default function LocationPicker({
         setSuggestions([]);
       }
     },
-    [isLoaded],
+    [placesLib],
   );
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (isOpen && locationDetails) {
-        fetchSuggestions(locationDetails);
+      if (isOpen && searchValue) {
+        fetchSuggestions(searchValue);
       }
     }, 300);
     return () => clearTimeout(timeoutId);
-  }, [locationDetails, isOpen, fetchSuggestions]);
+  }, [searchValue, isOpen, fetchSuggestions]);
 
   const handleSelect = (placeId: string, description: string) => {
-    onChangeLocationDetails(description);
+    setSearchValue(description);
     setSuggestions([]);
     setIsOpen(false);
 
-    if (isLoaded && window.google?.maps?.Geocoder) {
-      const geocoder = new window.google.maps.Geocoder();
+    if (geocodingLib) {
+      const geocoder = new geocodingLib.Geocoder();
       geocoder.geocode({ placeId }, (results, status) => {
         if (status === "OK" && results && results[0]) {
           const loc = results[0].geometry.location;
-          const newPos = { lat: loc.lat(), lng: loc.lng() };
+          const lat =
+            typeof loc.lat === "function" ? loc.lat() : (loc as any).lat;
+          const lng =
+            typeof loc.lng === "function" ? loc.lng() : (loc as any).lng;
+          const newPos = { lat, lng };
           setMapCenter(newPos);
           setMarkerPosition(newPos);
+
+          onChangeLocationDetails(
+            JSON.stringify({
+              address: results[0].formatted_address,
+              placeId: placeId,
+              lat,
+              lng,
+            }),
+          );
+        } else {
+          onChangeLocationDetails(description);
         }
       });
+    } else {
+      onChangeLocationDetails(description);
     }
   };
 
-  const onLoadMap = useCallback((map: google.maps.Map) => {
-    mapRef.current = map;
-  }, []);
-
-  const onUnmountMap = useCallback(() => {
-    mapRef.current = null;
-  }, []);
-
   const handleMapClick = useCallback(
-    (e: google.maps.MapMouseEvent) => {
-      if (!e.latLng) return;
+    (e: MapMouseEvent) => {
+      if (!e.detail.latLng) return;
 
-      const lat = e.latLng.lat();
-      const lng = e.latLng.lng();
+      const lat = e.detail.latLng.lat;
+      const lng = e.detail.latLng.lng;
       const newPos = { lat, lng };
 
       setMarkerPosition(newPos);
       setMapCenter(newPos);
 
-      if (isLoaded && window.google?.maps?.Geocoder) {
-        const geocoder = new window.google.maps.Geocoder();
+      if (geocodingLib) {
+        const geocoder = new geocodingLib.Geocoder();
         geocoder.geocode({ location: newPos }, (results, status) => {
           if (status === "OK" && results && results[0]) {
-            onChangeLocationDetails(results[0].formatted_address);
+            const address = results[0].formatted_address;
+            const placeId = results[0].place_id;
+            setSearchValue(address);
+            onChangeLocationDetails(
+              JSON.stringify({
+                address,
+                placeId,
+                lat,
+                lng,
+              }),
+            );
           }
         });
       }
     },
-    [isLoaded, onChangeLocationDetails],
+    [geocodingLib, onChangeLocationDetails],
   );
 
   const handleZoomIn = () => {
-    if (mapRef.current) {
-      mapRef.current.setZoom((mapRef.current.getZoom() || 15) + 1);
-    }
+    setZoom((prev) => prev + 1);
   };
 
   const handleZoomOut = () => {
-    if (mapRef.current) {
-      mapRef.current.setZoom((mapRef.current.getZoom() || 15) - 1);
-    }
+    setZoom((prev) => prev - 1);
   };
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {/* Type Selector Dropdown */}
       <Dropdown
         options={TYPE_OPTIONS}
         value={locationType}
@@ -186,7 +228,6 @@ export default function LocationPicker({
         popoverAlign="right"
       />
 
-      {/* Input Fields based on type */}
       <div className={styles.inputsWrapper}>
         {(locationType === "offline" || locationType === "hybrid") && (
           <>
@@ -198,172 +239,61 @@ export default function LocationPicker({
                 <input
                   type="text"
                   placeholder="Search physical address..."
-                  value={locationDetails}
-                  onChange={(e) => onChangeLocationDetails(e.target.value)}
+                  value={searchValue}
+                  onChange={(e) => {
+                    setSearchValue(e.target.value);
+                    onChangeLocationDetails(e.target.value);
+                  }}
                   onFocus={() => setIsOpen(true)}
                   className={styles.textInput}
                 />
               </div>
 
-              {isOpen &&
-                locationDetails.length > 0 &&
-                suggestions.length > 0 && (
-                  <div className={styles.suggestionsList}>
-                    {suggestions.map(({ placeId, description }) => (
-                      <button
-                        key={placeId}
-                        className={styles.suggestionItem}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleSelect(placeId, description);
+              {isOpen && searchValue.length > 0 && suggestions.length > 0 && (
+                <div className={styles.suggestionsList}>
+                  {suggestions.map(({ placeId, description }) => (
+                    <button
+                      key={placeId}
+                      className={styles.suggestionItem}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleSelect(placeId, description);
+                      }}
+                    >
+                      <div className={styles.inputIcon}>
+                        <MapPin size={16} />
+                      </div>
+                      <span
+                        style={{
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
                         }}
                       >
-                        <div className={styles.inputIcon}>
-                          <MapPin size={16} />
-                        </div>
-                        <span
-                          style={{
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {description}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                        {description}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
-            {/* Map Container outside the search box */}
             <div className={styles.mapContainer}>
-              {isLoaded ? (
-                <>
-                  <GoogleMap
-                    mapContainerStyle={{ width: "100%", height: "100%" }}
-                    center={mapCenter}
-                    zoom={15}
-                    onLoad={onLoadMap}
-                    onUnmount={onUnmountMap}
-                    onClick={handleMapClick}
-                    options={{
-                      disableDefaultUI: true,
-                      zoomControl: false,
-                      keyboardShortcuts: false,
-                      styles: [
-                        {
-                          elementType: "geometry",
-                          stylers: [{ color: "#212121" }],
-                        },
-                        {
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#757575" }],
-                        },
-                        {
-                          elementType: "labels.text.stroke",
-                          stylers: [{ color: "#212121" }],
-                        },
-                        {
-                          featureType: "administrative",
-                          elementType: "geometry",
-                          stylers: [{ color: "#757575" }],
-                        },
-                        {
-                          featureType: "administrative.country",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#9e9e9e" }],
-                        },
-                        {
-                          featureType: "administrative.land_parcel",
-                          stylers: [{ visibility: "off" }],
-                        },
-                        {
-                          featureType: "administrative.locality",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#bdbdbd" }],
-                        },
-                        {
-                          featureType: "poi",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#757575" }],
-                        },
-                        {
-                          featureType: "poi.park",
-                          elementType: "geometry",
-                          stylers: [{ color: "#181818" }],
-                        },
-                        {
-                          featureType: "poi.park",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#616161" }],
-                        },
-                        {
-                          featureType: "poi.park",
-                          elementType: "labels.text.stroke",
-                          stylers: [{ color: "#1b1b1b" }],
-                        },
-                        {
-                          featureType: "road",
-                          elementType: "geometry.fill",
-                          stylers: [{ color: "#2c2c2c" }],
-                        },
-                        {
-                          featureType: "road",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#8a8a8a" }],
-                        },
-                        {
-                          featureType: "road.arterial",
-                          elementType: "geometry",
-                          stylers: [{ color: "#373737" }],
-                        },
-                        {
-                          featureType: "road.highway",
-                          elementType: "geometry",
-                          stylers: [{ color: "#3c3c3c" }],
-                        },
-                        {
-                          featureType: "road.highway.controlled_access",
-                          elementType: "geometry",
-                          stylers: [{ color: "#4e4e4e" }],
-                        },
-                        {
-                          featureType: "road.local",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#616161" }],
-                        },
-                        {
-                          featureType: "transit",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#757575" }],
-                        },
-                        {
-                          featureType: "water",
-                          elementType: "geometry",
-                          stylers: [{ color: "#000000" }],
-                        },
-                        {
-                          featureType: "water",
-                          elementType: "labels.text.fill",
-                          stylers: [{ color: "#3d3d3d" }],
-                        },
-                        {
-                          featureType: "landscape.man_made",
-                          elementType: "geometry.fill",
-                          stylers: [{ color: "#2a2a2a" }],
-                        },
-                        {
-                          featureType: "landscape.man_made",
-                          elementType: "geometry.stroke",
-                          stylers: [{ color: "#3a3a3a" }, { weight: 1 }],
-                        },
-                      ],
-                    }}
-                  >
-                    {markerPosition && <Marker position={markerPosition} />}
-                  </GoogleMap>
-
+              <Map
+                mapId={MAP_ID}
+                style={{ width: "100%", height: "100%" }}
+                defaultCenter={defaultCenter}
+                center={mapCenter}
+                onCenterChanged={(ev) => setMapCenter(ev.detail.center)}
+                zoom={zoom}
+                onClick={handleMapClick}
+                disableDefaultUI={true}
+                keyboardShortcuts={false}
+                colorScheme={ColorScheme.DARK}
+                onZoomChanged={(e) => setZoom(e.detail.zoom)}
+              >
+                {markerPosition && <AdvancedMarker position={markerPosition} />}
+                <MapControl position={ControlPosition.RIGHT_BOTTOM}>
                   <div className={styles.customZoomControls}>
                     <button
                       type="button"
@@ -380,12 +310,8 @@ export default function LocationPicker({
                       <Minus size={16} />
                     </button>
                   </div>
-                </>
-              ) : (
-                <div style={{ padding: "1rem", color: "gray" }}>
-                  Loading interactive map...
-                </div>
-              )}
+                </MapControl>
+              </Map>
             </div>
           </>
         )}
@@ -406,5 +332,13 @@ export default function LocationPicker({
         )}
       </div>
     </div>
+  );
+}
+
+export default function LocationPicker(props: LocationPickerProps) {
+  return (
+    <APIProvider apiKey={GOOGLE_MAPS_API_KEY}>
+      <LocationPickerInner {...props} />
+    </APIProvider>
   );
 }

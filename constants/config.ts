@@ -1,6 +1,10 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL!;
 export const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL!;
 
+//MAPS
+export const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
+export const MAP_ID = process.env.NEXT_PUBLIC_MAP_ID!;
+
 export const API_ENDPOINTS = {
   BACKEND: {
     AUTH: {
@@ -21,6 +25,9 @@ export const API_ENDPOINTS = {
     ME: "/api/events/me",
     CREATE: "/api/events",
     GET_SIGNED_URL: "/api/events/upload/signed-url",
+    UPDATE: (id: string) => `/api/events/${id}`,
+    UPDATE_SLUG: (id: string) => `/api/events/${id}/slug`,
+    GET: (id: string) => `/api/events/${id}`,
   },
 };
 

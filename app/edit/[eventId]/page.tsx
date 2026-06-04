@@ -13,10 +13,22 @@ import {
   Type,
   CalendarClock,
   CalendarCheck,
+  Trash2,
+  UploadCloud,
+  ImageIcon,
+  FileEdit,
+  XCircle,
 } from "lucide-react";
 import styles from "./Edit.module.css";
-import { getSignedUrl, uploadToCDN, updateEvent, getEvent } from "@/api/events";
+import {
+  getSignedUrl,
+  uploadToCDN,
+  updateEvent,
+  getEvent,
+  updateEventSlug,
+} from "@/api/events";
 import { getImageUrl } from "@/constants/config";
+import SkeletonLoader from "./components/SkeletonLoader";
 
 // Custom components
 import DateRangeBlock from "@/components/DateRangeBlock";
@@ -27,12 +39,16 @@ import DOMPurify from "isomorphic-dompurify";
 import Dropdown from "@/components/Dropdown";
 import Switch from "@/components/Switch";
 import { toast } from "sonner";
+import Modal from "@/components/Modal";
+import { Event, UpdateEventPayload } from "@/types/event";
 
 export default function EditEventPage() {
   const router = useRouter();
   const params = useParams();
   const eventId = params.eventId as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const eventRef = useRef<Event | null>(null);
 
   // State
   const [isLoading, setIsLoading] = useState(true);
@@ -68,15 +84,28 @@ export default function EditEventPage() {
   const [requireApproval, setRequireApproval] = useState(false);
   const [capacity, setCapacity] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
+  const [status, setStatus] = useState<
+    "draft" | "published" | "completed" | "cancelled"
+  >("draft");
+  const [slug, setSlug] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
+  const [isUpdatingSlug, setIsUpdatingSlug] = useState(false);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
   // Initialize FastAverageColor
   const fac = new FastAverageColor();
+
+  useEffect(() => {
+    setBaseUrl(window.location.origin);
+  }, []);
 
   useEffect(() => {
     const fetchEvent = async () => {
       try {
         setIsLoading(true);
         const eventData = await getEvent(eventId);
+
+        eventRef.current = eventData;
 
         setTitle(eventData.title || "");
         setTitleFont(eventData.fontFamily || "'Inter', sans-serif");
@@ -116,13 +145,16 @@ export default function EditEventPage() {
         setRequireApproval(eventData.requireApproval || false);
         setCapacity(eventData.capacity ? eventData.capacity.toString() : "");
         setBgColor(eventData.color || "");
+        setStatus(eventData.status || "draft");
+        setSlug(eventData.slug || "");
 
         if (eventData.coverImage) {
           setCoverImageUrl(getImageUrl(eventData.coverImage));
         }
       } catch (error) {
-        console.error("Failed to fetch event data", error);
+        console.log("Failed to fetch event data", error);
         toast.error("Failed to load event data.");
+        router.push("/home");
       } finally {
         setIsLoading(false);
       }
@@ -149,9 +181,45 @@ export default function EditEventPage() {
     }
   };
 
+  const handleSlugUpdate = async () => {
+    if (slug === eventRef.current?.slug) {
+      toast.info("Slug is already the same.");
+      return;
+    }
+
+    if (slug.trim().length < 3) {
+      toast.error("Slug must be at least 3 characters long.");
+      return;
+    }
+
+    if (!slug.trim()) {
+      toast.error("Slug cannot be empty.");
+      return;
+    }
+
+    try {
+      setIsUpdatingSlug(true);
+      await updateEventSlug(eventId as string, slug);
+      toast.success("Slug updated successfully!");
+      eventRef.current!.slug = slug;
+    } catch (error: any) {
+      const errorMessage =
+        error.response?.data?.error || "Failed to update slug.";
+      toast.error(errorMessage);
+    } finally {
+      setIsUpdatingSlug(false);
+    }
+  };
+
   const handleUpdate = async () => {
     try {
       setIsSubmitting(true);
+
+      if (!hasEventChanged()) {
+        toast.info("No changes to update.");
+        setIsSubmitting(false);
+        return;
+      }
 
       // --- VALIDATIONS ---
       if (!title.trim()) {
@@ -222,7 +290,7 @@ export default function EditEventPage() {
         }
       }
 
-      const payload: any = {
+      const payload: UpdateEventPayload = {
         title: title || "Untitled Event",
         description,
         locationType,
@@ -237,6 +305,7 @@ export default function EditEventPage() {
         requireApproval,
         capacity: capacity ? parseInt(capacity, 10) : null,
         color: bgColor || "#000000",
+        status,
       };
 
       if (finalCoverImage) {
@@ -245,11 +314,9 @@ export default function EditEventPage() {
 
       const res = await updateEvent(eventId, payload);
 
-      if (res.status === 200 || res.status === 204) {
+      if (res) {
+        eventRef.current = res;
         toast.success("Event updated successfully!");
-        router.push(`/events/${eventId}`);
-      } else {
-        toast.error("Failed to update event. Please try again.");
       }
     } catch (error: any) {
       console.error("Error updating event:", error);
@@ -262,8 +329,55 @@ export default function EditEventPage() {
     }
   };
 
+  const isSlugButtonDisabled = () => {
+    return (
+      isUpdatingSlug ||
+      slug === eventRef.current?.slug ||
+      slug.trim().length < 3
+    );
+  };
+
+  const hasEventChanged = () => {
+    if (!eventRef.current) return false;
+
+    if (coverImageFile !== null) return true;
+    if (!coverImageUrl && eventRef.current.coverImage) return true;
+
+    let finalLocationDetails = locationDetails;
+    if (locationType === "online") {
+      finalLocationDetails = virtualLink;
+    } else if (locationType === "hybrid") {
+      finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
+    }
+
+    const normalizeDate = (d1: any, d2: any) => {
+      if (!d1 && !d2) return true;
+      if (!d1 || !d2) return false;
+      return new Date(d1).getTime() === new Date(d2).getTime();
+    };
+
+    const isSame =
+      eventRef.current.title === title &&
+      (eventRef.current.description || "") === description &&
+      eventRef.current.locationType === locationType &&
+      (eventRef.current.locationDetails || "") === finalLocationDetails &&
+      normalizeDate(eventRef.current.startDate, startDate) &&
+      normalizeDate(eventRef.current.endDate, endDate) &&
+      eventRef.current.timezone === timezone &&
+      normalizeDate(eventRef.current.registrationStart, regStartDate) &&
+      normalizeDate(eventRef.current.registrationEnd, regEndDate) &&
+      (eventRef.current.fontFamily || "'Inter', sans-serif") === titleFont &&
+      !!eventRef.current.requireApproval === requireApproval &&
+      eventRef.current.capacity ===
+        (capacity ? parseInt(capacity, 10) : null) &&
+      (eventRef.current.color || "") === bgColor &&
+      eventRef.current.status === status;
+
+    return !isSame;
+  };
+
   if (isLoading) {
-    return <div className={styles.page}>Loading...</div>;
+    return <SkeletonLoader />;
   }
 
   return (
@@ -278,7 +392,7 @@ export default function EditEventPage() {
         <div className={styles.leftPane}>
           <div
             className={styles.imageUploadBlock}
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setIsImageModalOpen(true)}
             style={{
               borderWidth: coverImageUrl ? "0px" : "1px",
             }}
@@ -314,6 +428,34 @@ export default function EditEventPage() {
               <Dropdown
                 options={[
                   {
+                    label: "Draft",
+                    value: "draft",
+                    LeftComponent: <FileEdit size={14} />,
+                  },
+                  {
+                    label: "Published",
+                    value: "published",
+                    LeftComponent: <Globe size={14} />,
+                  },
+                  {
+                    label: "Completed",
+                    value: "completed",
+                    LeftComponent: <CheckCircle size={14} />,
+                  },
+                  {
+                    label: "Cancelled",
+                    value: "cancelled",
+                    LeftComponent: <XCircle size={14} />,
+                  },
+                ]}
+                value={status}
+                onChange={(value) => setStatus(value as any)}
+              />
+            </div>
+            <div className={styles.togglePill}>
+              <Dropdown
+                options={[
+                  {
                     label: "Public",
                     value: "public",
                     LeftComponent: <Globe size={14} />,
@@ -338,10 +480,37 @@ export default function EditEventPage() {
             type="text"
             placeholder="Event Name"
             className={styles.titleInput}
-            style={{ fontFamily: titleFont }}
+            style={{ fontFamily: titleFont, marginBottom: "0" }}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
+
+          <div className={styles.slugInputWrapper}>
+            <span className={styles.slugBase}>{baseUrl}/</span>
+            <input
+              type="text"
+              className={styles.slugInput}
+              value={slug}
+              onChange={(e) =>
+                setSlug(
+                  e.target.value
+                    .toLowerCase()
+                    .replace(/\s/g, "-")
+                    .replace(/[^a-z0-9-]/g, "")
+                    .replace(/-{2,}/g, "-"),
+                )
+              }
+              placeholder="event-slug"
+            />
+            <button
+              className={styles.slugSaveBtn}
+              onClick={handleSlugUpdate}
+              disabled={isSlugButtonDisabled()}
+              style={{ opacity: isSlugButtonDisabled() ? 0.5 : 1 }}
+            >
+              {isUpdatingSlug ? "Saving..." : "Save"}
+            </button>
+          </div>
 
           {/* Event Date & Time */}
           <div className={styles.sectionLabel}>
@@ -462,8 +631,11 @@ export default function EditEventPage() {
           <button
             className={styles.createBtn}
             onClick={handleUpdate}
-            disabled={isSubmitting}
-            style={{ marginTop: "1rem" }}
+            disabled={isSubmitting || !hasEventChanged()}
+            style={{
+              marginTop: "1rem",
+              opacity: !hasEventChanged() ? 0.5 : 1,
+            }}
           >
             {isSubmitting ? "Updating..." : "Update Event"}
           </button>
@@ -476,6 +648,58 @@ export default function EditEventPage() {
         onClose={() => setIsDescModalOpen(false)}
         onSave={(val) => setDescription(val)}
       />
+
+      <Modal
+        isOpen={isImageModalOpen}
+        onClose={() => setIsImageModalOpen(false)}
+        title="Cover Image Options"
+      >
+        <div className={styles.modalBtnGroup}>
+          {coverImageUrl ? (
+            <>
+              <button
+                className={styles.modalActionBtn}
+                onClick={() => {
+                  fileInputRef.current?.click();
+                  setIsImageModalOpen(false);
+                }}
+              >
+                <div className={styles.iconCircle}>
+                  <ImageIcon size={18} strokeWidth={1.5} />
+                </div>
+                <span>Change cover image</span>
+              </button>
+              <button
+                className={`${styles.modalActionBtn} ${styles.dangerBtn}`}
+                onClick={() => {
+                  setCoverImageUrl("");
+                  setCoverImageFile(null);
+                  setBgColor("");
+                  setIsImageModalOpen(false);
+                }}
+              >
+                <div className={styles.iconCircleDanger}>
+                  <Trash2 size={18} strokeWidth={1.5} />
+                </div>
+                <span>Remove cover image</span>
+              </button>
+            </>
+          ) : (
+            <button
+              className={styles.modalActionBtn}
+              onClick={() => {
+                fileInputRef.current?.click();
+                setIsImageModalOpen(false);
+              }}
+            >
+              <div className={styles.iconCircle}>
+                <UploadCloud size={18} strokeWidth={1.5} />
+              </div>
+              <span>Upload image</span>
+            </button>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 }

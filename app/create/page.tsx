@@ -26,6 +26,8 @@ import DOMPurify from "isomorphic-dompurify";
 import Dropdown from "@/components/Dropdown";
 import Switch from "@/components/Switch";
 import { toast } from "sonner";
+import { randomStr } from "@/lib/utils";
+import { CreateEventPayload } from "@/types/event";
 
 export default function CreateEventPage() {
   const router = useRouter();
@@ -159,7 +161,7 @@ export default function CreateEventPage() {
         }
       }
 
-      const payload = {
+      const payload: CreateEventPayload = {
         title: title || "Untitled Event",
         description,
         coverImage: finalCoverImage,
@@ -175,16 +177,15 @@ export default function CreateEventPage() {
         requireApproval,
         capacity: capacity ? parseInt(capacity, 10) : null,
         color: bgColor || "#000000",
-        status: "published",
+        status: "draft",
+        slug: randomStr(5),
       };
 
-      console.log(JSON.stringify(payload, null, 2));
-
-      const res = await createEvent(payload as any);
+      const res = await createEvent(payload);
 
       if (res.status === 201) {
         toast.success("Event created successfully!");
-        router.push(`/events/${res.data.id}`);
+        router.push(`/edit/${res.data.id}`);
       } else {
         toast.error("Failed to create event. Please try again.");
       }

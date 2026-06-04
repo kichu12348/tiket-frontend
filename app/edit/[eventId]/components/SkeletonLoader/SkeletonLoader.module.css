@@ -1,0 +1,82 @@
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+
+.skeleton {
+  background-color: var(--color-soft-bg-subtle, rgba(255, 255, 255, 0.05));
+  border-radius: var(--radius-md, 8px);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.imageBlock {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radius-lg, 12px);
+}
+
+.fontPickerBlock {
+  width: 100%;
+  height: 48px;
+}
+
+.toggleBlock {
+  width: 100px;
+  height: 36px;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+}
+
+.titleBlock {
+  width: 70%;
+  height: 56px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.labelBlock {
+  width: 140px;
+  height: 18px;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.contentBlock {
+  width: 100%;
+  height: 96px;
+  margin-bottom: 1rem;
+}
+
+.contentBlockLocation {
+  width: 100%;
+  height: 250px;
+  margin-bottom: 1rem;
+}
+
+.contentBlockDescription {
+  width: 100%;
+  height: 92px;
+  margin-bottom: 1rem;
+}
+
+.labelBlockOptions {
+  width: 100px;
+  height: 16px;
+  margin-top: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.contentBlockOptions {
+  width: 100%;
+  height: 120px;
+}
+
+.buttonBlock {
+  width: 100%;
+  height: 48px;
+  margin-top: 1rem;
+}

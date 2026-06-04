@@ -15,6 +15,7 @@ export interface Event {
   requireApproval: boolean;
   capacity: number | null;
   status: "draft" | "published" | "completed" | "cancelled";
+  slug: string;
   organizationId: string;
   createdAt: string;
   updatedAt: string;
@@ -35,6 +36,12 @@ export interface CreateEventPayload {
   requireApproval: boolean;
   capacity: number | null;
   color: string;
-  status: "published" | "draft";
+  status: "published" | "draft" | "completed" | "cancelled";
+  slug: string;
 }
 
+export interface UpdateEventPayload extends Partial<
+  Omit<CreateEventPayload, "status">
+> {
+  status?: "draft" | "published" | "completed" | "cancelled";
+}
