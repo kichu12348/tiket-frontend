@@ -10,13 +10,6 @@ const timeFormatter = new Intl.DateTimeFormat("en", {
   minute: "2-digit",
 });
 
-function getImageSrc(coverImage: string) {
-  if (coverImage.startsWith("http") || coverImage.startsWith("data:")) {
-    return coverImage;
-  }
-  return getImageUrl(coverImage);
-}
-
 type EventCardProps = {
   event: Event;
 };
@@ -73,7 +66,10 @@ export default function EventCard({ event }: EventCardProps) {
       <div className={styles.imageColumn}>
         {event.coverImage ? (
           <Image
-            src={getImageSrc(event.coverImage)}
+            src={getImageUrl(event.coverImage, {
+              width: 400,
+              height: 400,
+            })}
             alt={event.title}
             className={styles.imageFallback}
             loading="lazy"

@@ -24,4 +24,21 @@ export const API_ENDPOINTS = {
   },
 };
 
-export const getImageUrl = (filename: string) => `${CDN_URL}/image/${filename}`;
+export interface ImageSrcOptions {
+  width?: number;
+  height?: number;
+  ext?: "jpeg" | "webp";
+  filter?: "tri" | "lanc" | "gauss" | "nearest";
+}
+
+export const getImageUrl = (filename: string, options?: ImageSrcOptions) => {
+  if (options?.width || options?.height || options?.ext || options?.filter) {
+    const params: string[] = [];
+    if (options?.width) params.push(`w=${options.width}`);
+    if (options?.height) params.push(`h=${options.height}`);
+    if (options?.ext) params.push(`ext=${options.ext}`);
+    if (options?.filter) params.push(`filter=${options.filter}`);
+    return `${CDN_URL}/image/${filename}?${params.join("&")}`;
+  }
+  return `${CDN_URL}/image/${filename}`;
+};

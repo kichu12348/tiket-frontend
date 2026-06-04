@@ -4,22 +4,29 @@ import { useEffect, useRef, useState, type ImgHTMLAttributes } from "react";
 import { ImageOff } from "lucide-react";
 import styles from "./Image.module.css";
 
-export default function Image(props: ImgHTMLAttributes<HTMLImageElement>) {
+interface ImageProps extends ImgHTMLAttributes<HTMLImageElement> {
+  ref?: React.RefObject<HTMLImageElement | null>;
+}
+
+export default function Image({
+  ref = useRef(null),
+  loading = "lazy",
+  ...props
+}: ImageProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
     setIsLoading(true);
     setIsError(false);
-    const img = imgRef.current;
-    
+    const img = ref.current;
+
     if (img) {
       if (img.complete) {
         setIsLoading(false);
         if (img.naturalWidth === 0) setIsError(true);
       }
-      
+
       const handleLoad = () => setIsLoading(false);
       const handleError = () => {
         setIsError(true);
@@ -28,7 +35,7 @@ export default function Image(props: ImgHTMLAttributes<HTMLImageElement>) {
 
       img.addEventListener("load", handleLoad);
       img.addEventListener("error", handleError);
-      
+
       return () => {
         img.removeEventListener("load", handleLoad);
         img.removeEventListener("error", handleError);
@@ -47,7 +54,8 @@ export default function Image(props: ImgHTMLAttributes<HTMLImageElement>) {
   return (
     <img
       {...props}
-      ref={imgRef}
+      ref={ref}
+      loading={loading}
       className={`${props.className || ""} ${isLoading ? styles.shimmer : ""}`}
     />
   );
