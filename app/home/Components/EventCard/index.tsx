@@ -1,9 +1,9 @@
-import React from "react";
 import { MapPin, UsersRound, CalendarClock } from "lucide-react";
 import { Event } from "@/types/event";
 import styles from "./EventCard.module.css";
 import { getImageUrl } from "@/constants/config";
 import Image from "@/components/Image";
+import Link from "next/link";
 
 const timeFormatter = new Intl.DateTimeFormat("en", {
   hour: "numeric",
@@ -22,7 +22,7 @@ export default function EventCard({ event }: EventCardProps) {
   const isLive = now >= start && now <= end;
 
   return (
-    <a href={`/events/${event.id}`} className={styles.card}>
+    <Link href={`/edit/${event.id}`} className={styles.card}>
       {/* 1. Core Info (Left Column) */}
       <div className={styles.infoColumn}>
         {/* Kicker: Live status and time */}
@@ -84,6 +84,6 @@ export default function EventCard({ event }: EventCardProps) {
           </div>
         )}
       </div>
-    </a>
+    </Link>
   );
 }

@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { API_ENDPOINTS, CDN_URL } from "@/constants/config";
-import { CreateEventPayload } from "../types/event";
+import { CreateEventPayload } from "@/types/event";
 
 export const getSignedUrl = async (filename: string, contentType: string) => {
   const response = await api.post(API_ENDPOINTS.EVENTS.GET_SIGNED_URL, {
@@ -31,5 +31,15 @@ export const uploadToCDN = async (signedUrlPath: string, file: File) => {
 
 export const createEvent = async (payload: CreateEventPayload) => {
   const response = await api.post(API_ENDPOINTS.EVENTS.CREATE, payload);
+  return response;
+};
+
+export const getEvent = async (id: string) => {
+  const response = await api.get(`/api/events/${id}`);
+  return response.data;
+};
+
+export const updateEvent = async (id: string, payload: Partial<CreateEventPayload>) => {
+  const response = await api.patch(`/api/events/${id}`, payload);
   return response;
 };

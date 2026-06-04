@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useRef, useEffect } from "react";
+import { useRouter, useParams } from "next/navigation";
 import { FastAverageColor } from "fast-average-color";
 import {
   ImagePlus,
@@ -14,8 +14,9 @@ import {
   CalendarClock,
   CalendarCheck,
 } from "lucide-react";
-import styles from "./Create.module.css";
-import { getSignedUrl, uploadToCDN, createEvent } from "@/api/events";
+import styles from "./Edit.module.css";
+import { getSignedUrl, uploadToCDN, updateEvent, getEvent } from "@/api/events";
+import { getImageUrl } from "@/constants/config";
 
 // Custom components
 import DateRangeBlock from "@/components/DateRangeBlock";
@@ -27,11 +28,14 @@ import Dropdown from "@/components/Dropdown";
 import Switch from "@/components/Switch";
 import { toast } from "sonner";
 
-export default function CreateEventPage() {
+export default function EditEventPage() {
   const router = useRouter();
+  const params = useParams();
+  const eventId = params.eventId as string;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State
+  const [isLoading, setIsLoading] = useState(true);
   const [bgColor, setBgColor] = useState<string>("");
   const [coverImageUrl, setCoverImageUrl] = useState<string>("");
   const [coverImageFile, setCoverImageFile] = useState<File | null>(null);
@@ -68,6 +72,65 @@ export default function CreateEventPage() {
   // Initialize FastAverageColor
   const fac = new FastAverageColor();
 
+  useEffect(() => {
+    const fetchEvent = async () => {
+      try {
+        setIsLoading(true);
+        const eventData = await getEvent(eventId);
+
+        setTitle(eventData.title || "");
+        setTitleFont(eventData.fontFamily || "'Inter', sans-serif");
+        setDescription(eventData.description || "");
+        setLocationType(eventData.locationType || "offline");
+
+        if (eventData.locationType === "online") {
+          setVirtualLink(eventData.locationDetails || "");
+        } else if (eventData.locationType === "hybrid") {
+          const parts = (eventData.locationDetails || "").split(" | Virtual: ");
+          if (parts.length === 2) {
+            setLocationDetails(parts[0].replace("Physical: ", ""));
+            setVirtualLink(parts[1]);
+          } else {
+            setLocationDetails(eventData.locationDetails || "");
+          }
+        } else {
+          setLocationDetails(eventData.locationDetails || "");
+        }
+
+        setStartDate(eventData.startDate || new Date().toISOString());
+        setEndDate(
+          eventData.endDate || new Date(Date.now() + 3600000).toISOString(),
+        );
+        setTimezone(
+          eventData.timezone ||
+            Intl.DateTimeFormat().resolvedOptions().timeZone,
+        );
+        setRegStartDate(
+          eventData.registrationStart || new Date().toISOString(),
+        );
+        setRegEndDate(
+          eventData.registrationEnd ||
+            new Date(Date.now() + 86400000).toISOString(),
+        );
+
+        setRequireApproval(eventData.requireApproval || false);
+        setCapacity(eventData.capacity ? eventData.capacity.toString() : "");
+        setBgColor(eventData.color || "");
+
+        if (eventData.coverImage) {
+          setCoverImageUrl(getImageUrl(eventData.coverImage));
+        }
+      } catch (error) {
+        console.error("Failed to fetch event data", error);
+        toast.error("Failed to load event data.");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (eventId) fetchEvent();
+  }, []);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -86,7 +149,7 @@ export default function CreateEventPage() {
     }
   };
 
-  const handleCreate = async () => {
+  const handleUpdate = async () => {
     try {
       setIsSubmitting(true);
 
@@ -133,7 +196,7 @@ export default function CreateEventPage() {
         finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
       }
 
-      let finalCoverImage = null;
+      let finalCoverImage = undefined;
 
       if (coverImageFile) {
         toast.info("Uploading cover image...");
@@ -159,13 +222,12 @@ export default function CreateEventPage() {
         }
       }
 
-      const payload = {
+      const payload: any = {
         title: title || "Untitled Event",
         description,
-        coverImage: finalCoverImage,
         locationType,
         locationDetails:
-          locationType === "online" ? virtualLink : locationDetails,
+          locationType === "online" ? virtualLink : finalLocationDetails,
         startDate,
         endDate,
         timezone,
@@ -175,29 +237,34 @@ export default function CreateEventPage() {
         requireApproval,
         capacity: capacity ? parseInt(capacity, 10) : null,
         color: bgColor || "#000000",
-        status: "published",
       };
 
-      console.log(JSON.stringify(payload, null, 2));
+      if (finalCoverImage) {
+        payload.coverImage = finalCoverImage;
+      }
 
-      const res = await createEvent(payload as any);
+      const res = await updateEvent(eventId, payload);
 
-      if (res.status === 201) {
-        toast.success("Event created successfully!");
-        router.push(`/events/${res.data.id}`);
+      if (res.status === 200 || res.status === 204) {
+        toast.success("Event updated successfully!");
+        router.push(`/events/${eventId}`);
       } else {
-        toast.error("Failed to create event. Please try again.");
+        toast.error("Failed to update event. Please try again.");
       }
     } catch (error: any) {
-      console.error("Error creating event:", error);
+      console.error("Error updating event:", error);
       const errorMessage =
         error.response?.data?.error ||
-        "An error occurred while creating the event.";
+        "An error occurred while updating the event.";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return <div className={styles.page}>Loading...</div>;
+  }
 
   return (
     <div
@@ -394,11 +461,11 @@ export default function CreateEventPage() {
 
           <button
             className={styles.createBtn}
-            onClick={handleCreate}
+            onClick={handleUpdate}
             disabled={isSubmitting}
             style={{ marginTop: "1rem" }}
           >
-            {isSubmitting ? "Creating..." : "Create Event"}
+            {isSubmitting ? "Updating..." : "Update Event"}
           </button>
         </div>
       </div>
