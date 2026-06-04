@@ -40,6 +40,28 @@ const defaultCenter = {
   lng: 76.30637841229771,
 };
 
+function MapController({
+  mapCenter,
+  zoomAction,
+}: {
+  mapCenter: { lat: number; lng: number } | null;
+  zoomAction: "in" | "out" | null;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    if (!map || !mapCenter) return;
+    map.panTo(mapCenter);
+  }, [map, mapCenter]);
+
+  useEffect(() => {
+    if (!map || !zoomAction) return;
+    map.setZoom((map.getZoom() || 15) + (zoomAction === "in" ? 1 : -1));
+  }, [map, zoomAction]);
+
+  return null;
+}
+
 function LocationPickerInner({
   locationType,
   locationDetails,
@@ -48,45 +70,60 @@ function LocationPickerInner({
   onChangeLocationDetails,
   onChangeVirtualLink,
 }: LocationPickerProps) {
-  const map = useMap(MAP_ID);
   const placesLib = useMapsLibrary("places");
   const geocodingLib = useMapsLibrary("geocoding");
 
-  const [mapCenter, setMapCenter] = useState(defaultCenter);
+  const [mapCenter, setMapCenter] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
   const [markerPosition, setMarkerPosition] = useState<{
     lat: number;
     lng: number;
   } | null>(null);
+  const [zoomAction, setZoomAction] = useState<"in" | "out" | null>(null);
   const [suggestions, setSuggestions] = useState<PlaceSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [searchValue, setSearchValue] = useState("");
-  const [hasInitialized, setHasInitialized] = useState(false);
-  const [zoom, setZoom] = useState(12);
 
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMounted = useRef(true);
+  const prevLocationDetailsRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => {
+      isMounted.current = false;
+    };
+  }, []);
 
   // Sync prop -> local state on mount or when locationDetails changes externally
   useEffect(() => {
     if (!locationDetails) {
       setSearchValue("");
+      prevLocationDetailsRef.current = locationDetails;
       return;
     }
+
+    // Prevent feedback loops
+    if (locationDetails === prevLocationDetailsRef.current) return;
+    prevLocationDetailsRef.current = locationDetails;
+
     try {
       const parsed = JSON.parse(locationDetails);
       if (parsed.address || parsed.name) {
         setSearchValue(parsed.address || parsed.name);
       }
-      if (parsed.lat && parsed.lng && !hasInitialized) {
+      if (parsed.lat && parsed.lng) {
         const pos = { lat: parsed.lat, lng: parsed.lng };
-        setMapCenter(pos);
         setMarkerPosition(pos);
-        setHasInitialized(true);
+        setMapCenter(pos);
       }
     } catch {
       // Fallback if it's just a raw string
       setSearchValue(locationDetails);
     }
-  }, [locationDetails, hasInitialized]);
+  }, [locationDetails]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -95,6 +132,7 @@ function LocationPickerInner({
         !containerRef.current.contains(event.target as Node)
       ) {
         setIsOpen(false);
+        setSuggestions([]); // Clear suggestions on blur
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -104,7 +142,7 @@ function LocationPickerInner({
   const fetchSuggestions = useCallback(
     async (input: string) => {
       if (!input || !placesLib || !(placesLib as any).AutocompleteSuggestion) {
-        setSuggestions([]);
+        if (isMounted.current) setSuggestions([]);
         return;
       }
 
@@ -113,6 +151,8 @@ function LocationPickerInner({
         const response = await (
           placesLib as any
         ).AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+
+        if (!isMounted.current) return;
 
         if (!response.suggestions || response.suggestions.length === 0) {
           setSuggestions([]);
@@ -125,8 +165,10 @@ function LocationPickerInner({
         }));
         setSuggestions(parsed);
       } catch (error) {
-        console.error("Failed to fetch places suggestions:", error);
-        setSuggestions([]);
+        if (isMounted.current) {
+          console.error("Failed to fetch places suggestions:", error);
+          setSuggestions([]);
+        }
       }
     },
     [placesLib],
@@ -149,6 +191,8 @@ function LocationPickerInner({
     if (geocodingLib) {
       const geocoder = new geocodingLib.Geocoder();
       geocoder.geocode({ placeId }, (results, status) => {
+        if (!isMounted.current) return;
+
         if (status === "OK" && results && results[0]) {
           const loc = results[0].geometry.location;
           const lat =
@@ -156,22 +200,24 @@ function LocationPickerInner({
           const lng =
             typeof loc.lng === "function" ? loc.lng() : (loc as any).lng;
           const newPos = { lat, lng };
-          setMapCenter(newPos);
           setMarkerPosition(newPos);
+          setMapCenter(newPos);
 
-          onChangeLocationDetails(
-            JSON.stringify({
-              address: results[0].formatted_address,
-              placeId: placeId,
-              lat,
-              lng,
-            }),
-          );
+          const newData = JSON.stringify({
+            address: results[0].formatted_address,
+            placeId: placeId,
+            lat,
+            lng,
+          });
+          prevLocationDetailsRef.current = newData;
+          onChangeLocationDetails(newData);
         } else {
+          prevLocationDetailsRef.current = description;
           onChangeLocationDetails(description);
         }
       });
     } else {
+      prevLocationDetailsRef.current = description;
       onChangeLocationDetails(description);
     }
   };
@@ -190,18 +236,21 @@ function LocationPickerInner({
       if (geocodingLib) {
         const geocoder = new geocodingLib.Geocoder();
         geocoder.geocode({ location: newPos }, (results, status) => {
+          if (!isMounted.current) return;
+
           if (status === "OK" && results && results[0]) {
             const address = results[0].formatted_address;
             const placeId = results[0].place_id;
             setSearchValue(address);
-            onChangeLocationDetails(
-              JSON.stringify({
-                address,
-                placeId,
-                lat,
-                lng,
-              }),
-            );
+
+            const newData = JSON.stringify({
+              address,
+              placeId,
+              lat,
+              lng,
+            });
+            prevLocationDetailsRef.current = newData;
+            onChangeLocationDetails(newData);
           }
         });
       }
@@ -210,11 +259,13 @@ function LocationPickerInner({
   );
 
   const handleZoomIn = () => {
-    setZoom((prev) => prev + 1);
+    setZoomAction("in");
+    setTimeout(() => setZoomAction(null), 50);
   };
 
   const handleZoomOut = () => {
-    setZoom((prev) => prev - 1);
+    setZoomAction("out");
+    setTimeout(() => setZoomAction(null), 50);
   };
 
   return (
@@ -238,11 +289,24 @@ function LocationPickerInner({
                 </div>
                 <input
                   type="text"
+                  role="combobox"
+                  aria-expanded={isOpen && suggestions.length > 0}
+                  aria-controls="location-suggestions"
+                  aria-autocomplete="list"
                   placeholder="Search physical address..."
                   value={searchValue}
                   onChange={(e) => {
-                    setSearchValue(e.target.value);
-                    onChangeLocationDetails(e.target.value);
+                    const val = e.target.value;
+                    setSearchValue(val);
+                    // Emit a proper JSON string to prevent downstream JSON parse errors
+                    const newData = JSON.stringify({
+                      address: val,
+                      placeId: "",
+                      lat: 0,
+                      lng: 0,
+                    });
+                    prevLocationDetailsRef.current = newData;
+                    onChangeLocationDetails(newData);
                   }}
                   onFocus={() => setIsOpen(true)}
                   className={styles.textInput}
@@ -250,10 +314,16 @@ function LocationPickerInner({
               </div>
 
               {isOpen && searchValue.length > 0 && suggestions.length > 0 && (
-                <div className={styles.suggestionsList}>
+                <div
+                  id="location-suggestions"
+                  role="listbox"
+                  className={styles.suggestionsList}
+                >
                   {suggestions.map(({ placeId, description }) => (
                     <button
                       key={placeId}
+                      role="option"
+                      aria-selected="false"
                       className={styles.suggestionItem}
                       onClick={(e) => {
                         e.preventDefault();
@@ -283,22 +353,21 @@ function LocationPickerInner({
                 mapId={MAP_ID}
                 style={{ width: "100%", height: "100%" }}
                 defaultCenter={defaultCenter}
-                center={mapCenter}
-                onCenterChanged={(ev) => setMapCenter(ev.detail.center)}
-                zoom={zoom}
+                defaultZoom={15}
                 onClick={handleMapClick}
                 disableDefaultUI={true}
                 keyboardShortcuts={false}
                 colorScheme={ColorScheme.DARK}
-                onZoomChanged={(e) => setZoom(e.detail.zoom)}
               >
                 {markerPosition && <AdvancedMarker position={markerPosition} />}
+                <MapController mapCenter={mapCenter} zoomAction={zoomAction} />
                 <MapControl position={ControlPosition.RIGHT_BOTTOM}>
                   <div className={styles.customZoomControls}>
                     <button
                       type="button"
                       className={styles.zoomBtn}
                       onClick={handleZoomIn}
+                      aria-label="Zoom In"
                     >
                       <Plus size={16} />
                     </button>
@@ -306,6 +375,7 @@ function LocationPickerInner({
                       type="button"
                       className={styles.zoomBtn}
                       onClick={handleZoomOut}
+                      aria-label="Zoom Out"
                     >
                       <Minus size={16} />
                     </button>
