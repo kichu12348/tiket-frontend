@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { FastAverageColor } from "fast-average-color";
+import { getBackgroundColor } from "@/lib/color";
 import {
   ImagePlus,
   Globe,
@@ -92,9 +92,6 @@ export default function EditEventPage() {
   const [isUpdatingSlug, setIsUpdatingSlug] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
-  // Initialize FastAverageColor
-  const fac = new FastAverageColor();
-
   useEffect(() => {
     setBaseUrl(window.location.origin);
   }, []);
@@ -170,10 +167,9 @@ export default function EditEventPage() {
       const url = URL.createObjectURL(file);
       setCoverImageUrl(url);
 
-      fac
-        .getColorAsync(url)
+      getBackgroundColor(url)
         .then((color) => {
-          setBgColor(color.hex);
+          setBgColor(color.hex());
         })
         .catch((e) => {
           console.error("Error extracting color:", e);
@@ -494,9 +490,8 @@ export default function EditEventPage() {
               onChange={(e) =>
                 setSlug(
                   e.target.value
-                    .toLowerCase()
                     .replace(/\s/g, "-")
-                    .replace(/[^a-z0-9-]/g, "")
+                    .replace(/[^A-Za-z0-9-]/g, "")
                     .replace(/-{2,}/g, "-"),
                 )
               }

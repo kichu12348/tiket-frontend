@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import styles from "./Create.module.css";
 import { getSignedUrl, uploadToCDN, createEvent } from "@/api/events";
+import { getBackgroundColor } from "@/lib/color";
 
 // Custom components
 import DateRangeBlock from "@/components/DateRangeBlock";
@@ -67,9 +68,6 @@ export default function CreateEventPage() {
   const [capacity, setCapacity] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
 
-  // Initialize FastAverageColor
-  const fac = new FastAverageColor();
-
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -77,10 +75,9 @@ export default function CreateEventPage() {
       const url = URL.createObjectURL(file);
       setCoverImageUrl(url);
 
-      fac
-        .getColorAsync(url)
+      getBackgroundColor(url)
         .then((color) => {
-          setBgColor(color.hex);
+          setBgColor(color.hex());
         })
         .catch((e) => {
           console.error("Error extracting color:", e);

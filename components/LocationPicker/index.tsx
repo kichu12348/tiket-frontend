@@ -25,7 +25,7 @@ interface LocationPickerProps {
 }
 
 interface PlaceSuggestion {
-  placeId: string;
+  placeId: google.maps.places.PlacePrediction["placeId"];
   description: string;
 }
 
@@ -39,6 +39,31 @@ const defaultCenter = {
   lat: 10.004675902169992, // Default to Kochi
   lng: 76.30637841229771,
 };
+
+function formatDetails(results: google.maps.GeocoderResult[]) {
+  let city = "";
+  let state = "";
+  let country = "";
+  if (results[0].address_components) {
+    results[0].address_components.forEach((component: any) => {
+      if (component.types.includes("locality")) {
+        city = component.long_name;
+      }
+      if (component.types.includes("administrative_area_level_1")) {
+        state = component.long_name;
+      }
+      if (component.types.includes("country")) {
+        country = component.long_name;
+      }
+    });
+  }
+  return {
+    address: results[0].formatted_address,
+    city,
+    state,
+    country,
+  };
+}
 
 function MapController({
   mapCenter,
@@ -141,16 +166,17 @@ function LocationPickerInner({
 
   const fetchSuggestions = useCallback(
     async (input: string) => {
-      if (!input || !placesLib || !(placesLib as any).AutocompleteSuggestion) {
+      if (!input || !placesLib || !placesLib.AutocompleteSuggestion) {
         if (isMounted.current) setSuggestions([]);
         return;
       }
 
       try {
         const request = { input };
-        const response = await (
-          placesLib as any
-        ).AutocompleteSuggestion.fetchAutocompleteSuggestions(request);
+        const response =
+          await placesLib.AutocompleteSuggestion.fetchAutocompleteSuggestions(
+            request,
+          );
 
         if (!isMounted.current) return;
 
@@ -159,10 +185,13 @@ function LocationPickerInner({
           return;
         }
 
-        const parsed = response.suggestions.map((s: any) => ({
-          placeId: s.placePrediction.placeId,
-          description: s.placePrediction.text.text,
-        }));
+        const parsed = response.suggestions.map((s) => {
+          const placePrediction = s.placePrediction;
+          return {
+            placeId: placePrediction?.placeId as string,
+            description: placePrediction?.text?.text as string,
+          };
+        });
         setSuggestions(parsed);
       } catch (error) {
         if (isMounted.current) {
@@ -179,7 +208,7 @@ function LocationPickerInner({
       if (isOpen && searchValue) {
         fetchSuggestions(searchValue);
       }
-    }, 300);
+    }, 500);
     return () => clearTimeout(timeoutId);
   }, [searchValue, isOpen, fetchSuggestions]);
 
@@ -203,14 +232,46 @@ function LocationPickerInner({
           setMarkerPosition(newPos);
           setMapCenter(newPos);
 
-          const newData = JSON.stringify({
-            address: results[0].formatted_address,
-            placeId: placeId,
-            lat,
-            lng,
-          });
-          prevLocationDetailsRef.current = newData;
-          onChangeLocationDetails(newData);
+          const { city, state, country } = formatDetails(results);
+
+          if (placesLib && placeId) {
+            const placesService = new placesLib.Place({
+              id: placeId,
+            });
+            placesService
+              .fetchFields({
+                fields: ["displayName"],
+              })
+              .then(() => {
+                if (!isMounted.current) return;
+                const name = placesService.displayName || "";
+                const newData = JSON.stringify({
+                  name: name || "",
+                  address: results[0].formatted_address,
+                  placeId: placeId,
+                  lat,
+                  lng,
+                  city,
+                  state,
+                  country,
+                });
+                prevLocationDetailsRef.current = newData;
+                onChangeLocationDetails(newData);
+              });
+          } else {
+            const newData = JSON.stringify({
+              name: "",
+              address: results[0].formatted_address,
+              placeId: placeId,
+              lat,
+              lng,
+              city,
+              state,
+              country,
+            });
+            prevLocationDetailsRef.current = newData;
+            onChangeLocationDetails(newData);
+          }
         } else {
           prevLocationDetailsRef.current = description;
           onChangeLocationDetails(description);
@@ -243,19 +304,49 @@ function LocationPickerInner({
             const placeId = results[0].place_id;
             setSearchValue(address);
 
-            const newData = JSON.stringify({
-              address,
-              placeId,
-              lat,
-              lng,
-            });
-            prevLocationDetailsRef.current = newData;
-            onChangeLocationDetails(newData);
+            const { city, state, country } = formatDetails(results);
+
+            if (placesLib && placeId) {
+              const dummyDiv = document.createElement("div");
+              const placesService = new placesLib.PlacesService(dummyDiv);
+              placesService.getDetails(
+                { placeId, fields: ["name"] },
+                (place, placeStatus) => {
+                  if (!isMounted.current) return;
+                  const name = placeStatus === "OK" && place ? place.name : "";
+                  const newData = JSON.stringify({
+                    name: name || "",
+                    address,
+                    placeId,
+                    lat,
+                    lng,
+                    city,
+                    state,
+                    country,
+                  });
+                  prevLocationDetailsRef.current = newData;
+                  onChangeLocationDetails(newData);
+                },
+              );
+            } else {
+              const newData = JSON.stringify({
+                name: "",
+                address,
+                placeId,
+                lat,
+                lng,
+                city,
+                state,
+                country,
+              });
+              prevLocationDetailsRef.current = newData;
+              onChangeLocationDetails(newData);
+            }
           }
         });
       }
     },
-    [geocodingLib, onChangeLocationDetails],
+    [geocodingLib, placesLib, onChangeLocationDetails],
   );
 
   const handleZoomIn = () => {
@@ -300,6 +391,7 @@ function LocationPickerInner({
                     setSearchValue(val);
                     // Emit a proper JSON string to prevent downstream JSON parse errors
                     const newData = JSON.stringify({
+                      name: "",
                       address: val,
                       placeId: "",
                       lat: 0,

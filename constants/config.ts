@@ -28,6 +28,7 @@ export const API_ENDPOINTS = {
     UPDATE: (id: string) => `/api/events/${id}`,
     UPDATE_SLUG: (id: string) => `/api/events/${id}/slug`,
     GET: (id: string) => `/api/events/${id}`,
+    GET_BY_SLUG: (slug: string) => `/api/events/slug/${slug}`,
   },
 };
 
