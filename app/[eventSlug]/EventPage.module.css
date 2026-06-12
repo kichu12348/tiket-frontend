@@ -1,13 +1,36 @@
 .pageWrapper {
-  min-height: 100vh;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
   background-color: var(--event-bg);
-  display: flex;
-  justify-content: center;
+  display: block;
   transition: background-color 0.3s ease;
+  scrollbar-color: var(--white-opacity-30) var(--event-bg);
+  scrollbar-width: auto;
+}
+
+@media screen and (max-width: 768px) {
+  .pageWrapper {
+    scrollbar-width: none;
+  }
+}
+
+.pageWrapper::-webkit-scrollbar {
+  width: 14px;
+}
+
+.pageWrapper::-webkit-scrollbar-track {
+  background: var(--event-bg);
+}
+
+.pageWrapper::-webkit-scrollbar-thumb {
+  background-color: var(--white-opacity-30);
+  border-radius: 8px;
+  border: 3px solid var(--event-bg);
 }
 
 .page {
-  min-height: 100%;
+  min-height: 100vh;
   padding: 4rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
