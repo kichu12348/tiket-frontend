@@ -19,6 +19,16 @@ export default function EventCard({ event }: EventCardProps) {
   const end = new Date(event.endDate);
   const now = new Date();
 
+  let locationDetails = event.locationDetails as string;
+  let name = null;
+  if (locationDetails) {
+    try {
+      name = JSON.parse(locationDetails).name;
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
   const isLive = now >= start && now <= end;
 
   return (
@@ -48,9 +58,7 @@ export default function EventCard({ event }: EventCardProps) {
 
           <div className={styles.metaRow}>
             <MapPin size={14} className={styles.metaIcon} />
-            <span className={styles.metaText}>
-              {event.locationDetails || "Venue TBA"}
-            </span>
+            <span className={styles.metaText}>{name || "Venue TBA"}</span>
           </div>
 
           {event.capacity && (

@@ -307,13 +307,16 @@ function LocationPickerInner({
             const { city, state, country } = formatDetails(results);
 
             if (placesLib && placeId) {
-              const dummyDiv = document.createElement("div");
-              const placesService = new placesLib.PlacesService(dummyDiv);
-              placesService.getDetails(
-                { placeId, fields: ["name"] },
-                (place, placeStatus) => {
+              const placeObj = new placesLib.Place({
+                id: placeId,
+              });
+              placeObj
+                .fetchFields({
+                  fields: ["displayName"],
+                })
+                .then(() => {
                   if (!isMounted.current) return;
-                  const name = placeStatus === "OK" && place ? place.name : "";
+                  const name = placeObj.displayName || "";
                   const newData = JSON.stringify({
                     name: name || "",
                     address,
@@ -326,8 +329,7 @@ function LocationPickerInner({
                   });
                   prevLocationDetailsRef.current = newData;
                   onChangeLocationDetails(newData);
-                },
-              );
+                });
             } else {
               const newData = JSON.stringify({
                 name: "",
