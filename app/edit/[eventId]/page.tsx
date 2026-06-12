@@ -42,6 +42,8 @@ import Switch from "@/components/Switch";
 import { toast } from "sonner";
 import Modal from "@/components/Modal";
 import { Event, UpdateEventPayload } from "@/types/event";
+import Image from "@/components/Image";
+import { TRANSPARENT_BG } from "@/constants/util";
 
 const STYLE_VAR = "--dynamic-bg";
 
@@ -200,21 +202,39 @@ export default function EditEventPage() {
       return;
     }
 
-    if (slug.trim().length < 3) {
+    let newSlug = slug.trim();
+    if (slug.endsWith("-")) {
+      newSlug = slug.slice(0, -1);
+    }
+    if (slug.startsWith("-")) {
+      newSlug = newSlug.slice(1);
+    }
+
+    setSlug(newSlug);
+
+    if (newSlug === eventRef.current?.slug) {
+      return;
+    }
+
+    if (newSlug.length < 3) {
       toast.error("Slug must be at least 3 characters long.");
       return;
     }
 
-    if (!slug.trim()) {
+    if (!newSlug) {
       toast.error("Slug cannot be empty.");
       return;
     }
 
     try {
       setIsUpdatingSlug(true);
-      await updateEventSlug(eventId as string, slug);
-      toast.success("Slug updated successfully!");
+      const { message, slug } = await updateEventSlug(
+        eventId as string,
+        newSlug,
+      );
+      toast.success(message);
       eventRef.current!.slug = slug;
+      setSlug(slug);
     } catch (error: any) {
       const errorMessage =
         error.response?.data?.error || "Failed to update slug.";
@@ -397,7 +417,9 @@ export default function EditEventPage() {
     <div
       className={styles.page}
       style={
-        bgColor ? ({ "--dynamic-bg": bgColor } as React.CSSProperties) : {}
+        bgColor && bgColor !== TRANSPARENT_BG
+          ? ({ "--dynamic-bg": bgColor } as React.CSSProperties)
+          : {}
       }
       ref={bgRef}
     >
@@ -412,7 +434,7 @@ export default function EditEventPage() {
             }}
           >
             {coverImageUrl ? (
-              <img
+              <Image
                 src={coverImageUrl}
                 alt="Cover Preview"
                 className={styles.uploadedImage}
@@ -516,7 +538,7 @@ export default function EditEventPage() {
                 setSlug(
                   e.target.value
                     .replace(/\s/g, "-")
-                    .replace(/[^A-Za-z0-9-]/g, "")
+                    .replace(/[^a-z0-9-]/g, "")
                     .replace(/-{2,}/g, "-"),
                 )
               }

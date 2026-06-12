@@ -3,6 +3,7 @@ import { Pipette } from "lucide-react";
 import { HexColorPicker } from "react-colorful";
 import styles from "./ColorPicker.module.css";
 import { useDebounced } from "@/lib/clientUtils";
+import { TRANSPARENT_BG } from "@/constants/util";
 
 interface ColorPickerProps {
   value: string;
@@ -98,7 +99,10 @@ export default function ColorPicker({
         <div className={styles.triggerInfo}>
           <div
             className={styles.colorPreview}
-            style={{ backgroundColor: value || "#000000" }}
+            style={{
+              backgroundColor:
+                value && value === TRANSPARENT_BG ? "transparent" : value,
+            }}
           />
           <div className={styles.triggerLabel}>
             <span>Theme Color</span>
@@ -111,7 +115,9 @@ export default function ColorPicker({
       {isOpen && (
         <div className={styles.popover}>
           <HexColorPicker
-            color={value || "#000000"}
+            color={
+              value && value === TRANSPARENT_BG ? "#000000" : value || "#000000"
+            }
             onChange={handleColorChange}
           />
 
@@ -120,7 +126,11 @@ export default function ColorPicker({
             <input
               type="text"
               className={styles.hexInput}
-              value={hexInput}
+              value={
+                hexInput === TRANSPARENT_BG
+                  ? "transparent"
+                  : hexInput || "#000000"
+              }
               onChange={handleHexInputChange}
               maxLength={6}
             />
@@ -138,9 +148,18 @@ export default function ColorPicker({
               />
             ))}
           </div>
+          <button
+            onClick={() => {
+              handleColorChange(TRANSPARENT_BG);
+              setHexInput(TRANSPARENT_BG);
+            }}
+            className={styles.resetBtn}
+          >
+            Transparent Background
+          </button>
           {reset && (
             <button onClick={reset} className={styles.resetBtn}>
-              Reset
+              Reset to Image Color
             </button>
           )}
         </div>

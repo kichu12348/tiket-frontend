@@ -42,7 +42,10 @@ export const updateEvent = async (
   return response.data;
 };
 
-export const updateEventSlug = async (id: string, slug: string): Promise<Event> => {
+export const updateEventSlug = async (
+  id: string,
+  slug: string,
+): Promise<{ id: string; slug: string; message: string }> => {
   const response = await api.patch(API_ENDPOINTS.EVENTS.UPDATE_SLUG(id), {
     slug,
   });

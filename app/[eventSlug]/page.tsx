@@ -8,12 +8,16 @@ import { formatEventDates, parseLocationDetails } from "./utils/formatters";
 import RegistrationCard from "./components/RegistrationCard";
 import EventLocation from "./components/EventLocation";
 import { FiArrowUpRight } from "react-icons/fi";
+import { TRANSPARENT_BG } from "@/constants/util";
+import { Metadata, Viewport } from "next";
 
 interface PageProps {
   params: Promise<{ eventSlug: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps) {
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
   const resolvedParams = await params;
   const event = await getEventBySlug(resolvedParams.eventSlug);
   if (!event) return { title: "Event Not Found" };
@@ -22,7 +26,7 @@ export async function generateMetadata({ params }: PageProps) {
     description: event.description || "Join this amazing event!",
     openGraph: {
       title: event.title,
-      description: event.description,
+      description: event.description || "",
       images: [
         {
           url: getImageUrl(event.coverImage || ""),
@@ -32,6 +36,17 @@ export async function generateMetadata({ params }: PageProps) {
         },
       ],
     },
+  };
+}
+
+export async function generateViewport({
+  params,
+}: PageProps): Promise<Viewport> {
+  const resolvedParams = await params;
+  const event = await getEventBySlug(resolvedParams.eventSlug);
+  if (!event) return { themeColor: "#3B3E2F" };
+  return {
+    themeColor: event.color,
   };
 }
 
@@ -50,7 +65,8 @@ export default async function EventPage({ params }: PageProps) {
   const { formattedDate, formattedTime, monthShort, dayNumber } =
     formatEventDates(event.startDate, event.endDate);
 
-  const customBg = event.color || "#3B3E2F";
+  const customBg =
+    event.color === TRANSPARENT_BG ? "transparent" : event.color || "#3B3E2F";
 
   const locationData = parseLocationDetails(event.locationDetails);
   const { city, state, name } = locationData;
@@ -70,6 +86,14 @@ export default async function EventPage({ params }: PageProps) {
           {/* Left Column */}
           <div className={styles.leftColumn}>
             <div className={styles.posterWrapper}>
+              {event.coverImage && (
+                <img
+                  src={getImageUrl(event.coverImage)}
+                  alt=""
+                  className={styles.posterGlow}
+                  aria-hidden="true"
+                />
+              )}
               {event.coverImage ? (
                 <img
                   src={getImageUrl(event.coverImage)}
@@ -79,7 +103,7 @@ export default async function EventPage({ params }: PageProps) {
               ) : (
                 <div
                   className={styles.posterImage}
-                  style={{ backgroundColor: event.color || "#000000" }}
+                  style={{ backgroundColor: customBg }}
                 />
               )}
             </div>
