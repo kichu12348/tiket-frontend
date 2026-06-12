@@ -33,6 +33,7 @@ import SkeletonLoader from "./components/SkeletonLoader";
 // Custom components
 import DateRangeBlock from "@/components/DateRangeBlock";
 import FontPicker from "@/components/FontPicker";
+import ColorPicker from "@/components/ColorPicker";
 import LocationPicker from "@/components/LocationPicker";
 import DescriptionModal from "@/components/DescriptionModal";
 import DOMPurify from "isomorphic-dompurify";
@@ -42,6 +43,8 @@ import { toast } from "sonner";
 import Modal from "@/components/Modal";
 import { Event, UpdateEventPayload } from "@/types/event";
 
+const STYLE_VAR = "--dynamic-bg";
+
 export default function EditEventPage() {
   const router = useRouter();
   const params = useParams();
@@ -49,6 +52,7 @@ export default function EditEventPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const eventRef = useRef<Event | null>(null);
+  const bgRef = useRef<HTMLDivElement>(null);
 
   // State
   const [isLoading, setIsLoading] = useState(true);
@@ -91,6 +95,19 @@ export default function EditEventPage() {
   const [baseUrl, setBaseUrl] = useState("");
   const [isUpdatingSlug, setIsUpdatingSlug] = useState(false);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
+  const ResetBgColor = () => {
+    if (coverImageUrl)
+      getBackgroundColor(coverImageUrl)
+        .then((color) => {
+          setBgColor(color.hex());
+        })
+        .catch((error) => {
+          console.log("Error", error);
+          toast.error("Failed to extract background color");
+          setBgColor("");
+        });
+  };
 
   useEffect(() => {
     setBaseUrl(window.location.origin);
@@ -382,6 +399,7 @@ export default function EditEventPage() {
       style={
         bgColor ? ({ "--dynamic-bg": bgColor } as React.CSSProperties) : {}
       }
+      ref={bgRef}
     >
       <div className={styles.container}>
         {/* Left Pane */}
@@ -415,6 +433,13 @@ export default function EditEventPage() {
           </div>
 
           <FontPicker value={titleFont} onChange={setTitleFont} />
+          <ColorPicker
+            value={bgColor}
+            onChange={setBgColor}
+            bgRef={bgRef}
+            styleVar={STYLE_VAR}
+            reset={ResetBgColor}
+          />
         </div>
 
         {/* Right Pane */}

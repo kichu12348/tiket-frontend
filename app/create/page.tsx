@@ -21,6 +21,7 @@ import { getBackgroundColor } from "@/lib/color";
 // Custom components
 import DateRangeBlock from "@/components/DateRangeBlock";
 import FontPicker from "@/components/FontPicker";
+import ColorPicker from "@/components/ColorPicker";
 import LocationPicker from "@/components/LocationPicker";
 import DescriptionModal from "@/components/DescriptionModal";
 import DOMPurify from "isomorphic-dompurify";
@@ -236,6 +237,7 @@ export default function CreateEventPage() {
           </div>
 
           <FontPicker value={titleFont} onChange={setTitleFont} />
+          <ColorPicker value={bgColor} onChange={setBgColor} />
         </div>
 
         {/* Right Pane */}

@@ -4,6 +4,7 @@ import chroma from "chroma-js";
 export async function getBackgroundColor(imagePath: string) {
   try {
     const image = document.createElement("img");
+    image.crossOrigin = "anonymous";
     image.src = imagePath;
     await new Promise((resolve, reject) => {
       image.onload = () => resolve(image);
