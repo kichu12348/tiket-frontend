@@ -1,0 +1,242 @@
+.page {
+  min-height: 100vh;
+  background-color: #f5f5f7; /* Light Apple-esque background */
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 3rem 1rem;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.passContainer {
+  width: 100%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.pass {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.invalidPass {
+  opacity: 0.8;
+  filter: grayscale(0.5);
+}
+
+.header {
+  background: #111111;
+  color: #ffffff;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.headerTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.ticketType {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.statusBadge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: #28a745;
+  color: #fff;
+}
+
+.statusBadge[data-status="checked-in"] {
+  background: #ffc107;
+  color: #000;
+}
+
+.statusBadge[data-status="cancelled"] {
+  background: #dc3545;
+}
+
+.eventName {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.detailsGrid {
+  padding: 1.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.detailItem:nth-child(3) {
+  grid-column: span 2;
+}
+
+.detailLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #888888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.detailValue {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #111111;
+  line-height: 1.4;
+}
+
+.divider {
+  border: none;
+  border-top: 2px dashed #eeeeee;
+  margin: 0 1.5rem;
+}
+
+.qrSection {
+  padding: 2rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  background: #ffffff;
+}
+
+.qrWrapper {
+  background: #ffffff;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid #eeeeee;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) rotate(-30deg);
+  font-size: 2rem;
+  font-weight: 900;
+  color: rgba(220, 53, 69, 0.8);
+  border: 4px solid rgba(220, 53, 69, 0.8);
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.ticketId {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: #666666;
+}
+
+.instructions {
+  font-size: 0.85rem;
+  color: #888888;
+  text-align: center;
+  max-width: 80%;
+}
+
+.actions {
+  display: flex;
+  justify-content: center;
+}
+
+.actionBtn {
+  background: #007aff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0.75rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.actionBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+}
+
+.loading, .error {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #666;
+  background: #f5f5f7;
+}
+
+/* Print Styles */
+@media print {
+  @page {
+    margin: 0;
+    size: auto;
+  }
+  
+  body {
+    background: #ffffff !important;
+  }
+
+  .page {
+    background: #ffffff !important;
+    padding: 0 !important;
+    min-height: auto;
+    display: block;
+  }
+
+  .passContainer {
+    max-width: 100%;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .pass {
+    box-shadow: none !important;
+    border: 1px solid #dddddd;
+    border-radius: 0;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .header {
+    background: #111111 !important;
+    color: #ffffff !important;
+  }
+
+  .actions {
+    display: none !important;
+  }
+}

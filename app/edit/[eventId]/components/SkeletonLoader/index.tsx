@@ -1,5 +1,5 @@
 import styles from "./SkeletonLoader.module.css";
-import editStyles from "../../Edit.module.css";
+import editStyles from "../../EditLayout.module.css";
 
 export default function SkeletonLoader() {
   return (

@@ -8,7 +8,7 @@
 }
 
 .skeleton {
-  background-color: var(--color-soft-bg-subtle, rgba(255, 255, 255, 0.05));
+  background-color: var(--surface-hover);
   border-radius: var(--radius-md, 8px);
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

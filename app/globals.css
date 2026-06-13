@@ -219,6 +219,29 @@
   --color-border-hover: rgba(255, 255, 255, 0.4);
   --color-icon-bg-hover: rgba(255, 255, 255, 0.1);
 
+  /* Semantic Design Tokens */
+  --surface: rgba(255, 255, 255, 0.03);
+  --surface-hover: rgba(255, 255, 255, 0.05);
+  --surface-elevated: rgba(255, 255, 255, 0.1);
+  --sidebar-bg: rgba(20, 20, 20, 0.4);
+  
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.15);
+  
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.4);
+  
+  --btn-primary-bg: #ffffff;
+  --btn-primary-text: #000000;
+  
+  --status-success: #28a745;
+  --status-success-bg: rgba(40, 167, 69, 0.15);
+  --status-warning: #ffc107;
+  --status-warning-bg: rgba(255, 193, 7, 0.15);
+  --status-danger: rgba(255, 80, 80, 1);
+  --status-danger-bg: rgba(255, 80, 80, 0.15);
+
   /*status colors*/
   --color-error: #f05454;
   --color-success: #55c85d;

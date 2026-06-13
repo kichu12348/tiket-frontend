@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { FastAverageColor } from "fast-average-color";
+import Link from "next/link";
 import {
   ImagePlus,
   Globe,
@@ -13,9 +13,12 @@ import {
   Type,
   CalendarClock,
   CalendarCheck,
+  ChevronLeft,
+  Link2,
+  Activity,
 } from "lucide-react";
-import styles from "./Create.module.css";
-import { getSignedUrl, uploadToCDN, createEvent } from "@/api/events";
+import styles from "./Details.module.css";
+import { getSignedUrl, uploadToCDN, updateEvent } from "@/api/events";
 import { getBackgroundColor } from "@/lib/color";
 
 // Custom components
@@ -28,13 +31,14 @@ import DOMPurify from "isomorphic-dompurify";
 import Dropdown from "@/components/Dropdown";
 import Switch from "@/components/Switch";
 import { toast } from "sonner";
-import { randomStr } from "@/lib/utils";
-import { CreateEventPayload } from "@/types/event";
 import { validateEventPayload } from "@/lib/validators/event";
+import { useEventStore } from "@/store/useEventStore";
+import Image from "@/components/Image";
 
-export default function CreateEventPage() {
+export default function EditDetailsPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { event, updateEventLocally } = useEventStore();
 
   // State
   const [bgColor, setBgColor] = useState<string>("");
@@ -70,9 +74,61 @@ export default function CreateEventPage() {
   const [capacity, setCapacity] = useState("");
   const [visibility, setVisibility] = useState<"public" | "private">("public");
 
+  // Extra fields from Settings
+  const [status, setStatus] = useState<
+    "draft" | "published" | "cancelled" | "completed"
+  >("draft");
+
+  useEffect(() => {
+    if (event) {
+      setBgColor(event.color || "#000000");
+      setCoverImageUrl(event.coverImage || "");
+      setTitle(event.title || "");
+      setTitleFont(event.fontFamily || "'Inter', sans-serif");
+      setStartDate(event.startDate || new Date().toISOString());
+      setEndDate(event.endDate || new Date(Date.now() + 3600000).toISOString());
+      setTimezone(
+        event.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone,
+      );
+      setRegStartDate(event.registrationStart || new Date().toISOString());
+      setRegEndDate(
+        event.registrationEnd || new Date(Date.now() + 86400000).toISOString(),
+      );
+      setLocationType(event.locationType || "offline");
+
+      if (event.locationType === "online") {
+        setVirtualLink(event.locationDetails || "");
+      } else if (event.locationType === "hybrid") {
+        // Simple extraction fallback (assuming "Physical: ... | Virtual: ...")
+        if (
+          event.locationDetails &&
+          event.locationDetails.includes("| Virtual: ")
+        ) {
+          const parts = event.locationDetails.split("| Virtual: ");
+          setLocationDetails(parts[0].replace("Physical: ", "").trim());
+          setVirtualLink(parts[1].trim());
+        } else {
+          setLocationDetails(event.locationDetails || "");
+        }
+      } else {
+        setLocationDetails(event.locationDetails || "");
+      }
+
+      setDescription(event.description || "");
+      setRequireApproval(event.requireApproval || false);
+      setCapacity(event.capacity ? event.capacity.toString() : "");
+      setVisibility("public");
+      setStatus(event.status || "draft");
+    }
+  }, [event]);
+
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
       setCoverImageFile(file);
       const url = URL.createObjectURL(file);
       setCoverImageUrl(url);
@@ -87,11 +143,12 @@ export default function CreateEventPage() {
     }
   };
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
+    if (!event) return;
+
     try {
       setIsSubmitting(true);
 
-      // --- VALIDATIONS ---
       const validationError = validateEventPayload({
         title,
         startDate,
@@ -106,7 +163,6 @@ export default function CreateEventPage() {
         setIsSubmitting(false);
         return;
       }
-      // -------------------
 
       let finalLocationDetails = locationDetails;
       if (locationType === "online") {
@@ -115,7 +171,7 @@ export default function CreateEventPage() {
         finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
       }
 
-      let finalCoverImage = null;
+      let finalCoverImage = event.coverImage;
 
       if (coverImageFile) {
         toast.info("Uploading cover image...");
@@ -141,13 +197,12 @@ export default function CreateEventPage() {
         }
       }
 
-      const payload: CreateEventPayload = {
+      const payload = {
         title: title || "Untitled Event",
         description,
         coverImage: finalCoverImage,
         locationType,
-        locationDetails:
-          locationType === "online" ? virtualLink : locationDetails,
+        locationDetails: finalLocationDetails,
         startDate,
         endDate,
         timezone,
@@ -156,29 +211,28 @@ export default function CreateEventPage() {
         fontFamily: titleFont,
         requireApproval,
         capacity: capacity ? parseInt(capacity, 10) : null,
-        color: bgColor || "#000000",
-        status: "draft",
-        slug: randomStr(5),
+        color: bgColor,
+        visibility,
+        status,
       };
 
-      const res = await createEvent(payload);
-
-      if (res.status === 201) {
-        toast.success("Event created successfully!");
-        router.push(`/edit/${res.data.id}`);
-      } else {
-        toast.error("Failed to create event. Please try again.");
-      }
+      const updated = await updateEvent(event.id, payload);
+      updateEventLocally(updated);
+      toast.success("Event updated successfully!");
+      setCoverImageFile(null);
+      // Don't auto navigate away, keep them on the edit page so they can keep making changes if needed
     } catch (error: any) {
-      console.error("Error creating event:", error);
-      const errorMessage =
+      console.error("Error updating event:", error);
+      toast.error(
         error.response?.data?.error ||
-        "An error occurred while creating the event.";
-      toast.error(errorMessage);
+          "An error occurred while saving the event.",
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (!event) return null;
 
   return (
     <div
@@ -187,22 +241,35 @@ export default function CreateEventPage() {
         bgColor ? ({ "--dynamic-bg": bgColor } as React.CSSProperties) : {}
       }
     >
+      <div className={styles.header}>
+        <Link href={`/edit/${event.id}/overview`} className={styles.backBtn}>
+          <ChevronLeft size={18} />
+          Back to Dashboard
+        </Link>
+      </div>
+
       <div className={styles.container}>
         {/* Left Pane */}
         <div className={styles.leftPane}>
           <div
             className={styles.imageUploadBlock}
             onClick={() => fileInputRef.current?.click()}
-            style={{
-              borderWidth: coverImageUrl ? "0px" : "1px",
-            }}
+            style={{ borderWidth: coverImageUrl ? "0px" : "1px" }}
           >
             {coverImageUrl ? (
-              <img
-                src={coverImageUrl}
-                alt="Cover Preview"
-                className={styles.uploadedImage}
-              />
+              <div
+                style={{ width: "100%", height: "100%", position: "relative" }}
+              >
+                {coverImageFile ? (
+                  <img
+                    src={coverImageUrl}
+                    alt="Cover Preview"
+                    className={styles.uploadedImage}
+                  />
+                ) : (
+                  <Image src={coverImageUrl} className={styles.uploadedImage} />
+                )}
+              </div>
             ) : (
               <div className={styles.uploadIconWrapper}>
                 <ImagePlus size={32} strokeWidth={1.5} />
@@ -245,6 +312,35 @@ export default function CreateEventPage() {
                 onChange={(value) =>
                   setVisibility(value as "public" | "private")
                 }
+              />
+            </div>
+
+            <div className={styles.togglePill}>
+              <Dropdown
+                options={[
+                  {
+                    label: "Draft",
+                    value: "draft",
+                    LeftComponent: <Activity size={14} />,
+                  },
+                  {
+                    label: "Published",
+                    value: "published",
+                    LeftComponent: <Globe size={14} />,
+                  },
+                  {
+                    label: "Cancelled",
+                    value: "cancelled",
+                    LeftComponent: <CheckCircle size={14} />,
+                  },
+                  {
+                    label: "Completed",
+                    value: "completed",
+                    LeftComponent: <CheckCircle size={14} />,
+                  },
+                ]}
+                value={status}
+                onChange={(value) => setStatus(value as any)}
               />
             </div>
           </div>
@@ -320,8 +416,8 @@ export default function CreateEventPage() {
                 alignItems: "flex-start",
                 padding: "1rem",
                 color: description
-                  ? "var(--color-text-primary)"
-                  : "rgba(255, 255, 255, 0.4)",
+                  ? "var(--text-primary)"
+                  : "var(--text-muted)",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
               }}
@@ -376,11 +472,11 @@ export default function CreateEventPage() {
 
           <button
             className={styles.createBtn}
-            onClick={handleCreate}
+            onClick={handleSave}
             disabled={isSubmitting}
             style={{ marginTop: "1rem" }}
           >
-            {isSubmitting ? "Creating..." : "Create Event"}
+            {isSubmitting ? "Saving..." : "Save Changes"}
           </button>
         </div>
       </div>

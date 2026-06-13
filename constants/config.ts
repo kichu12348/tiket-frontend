@@ -30,6 +30,21 @@ export const API_ENDPOINTS = {
     GET: (id: string) => `/api/events/${id}`,
     GET_BY_SLUG: (slug: string) => `/api/events/slug/${slug}`,
   },
+  TICKET_TYPES: {
+    CREATE: `/api/ticket-types`, // /api/ticket-types/:eventId
+    GET_ALL: (eventId: string) => `/api/ticket-types/${eventId}`,
+    UPDATE: (eventId: string, ticketTypeId: string) => `/api/ticket-types/${eventId}/${ticketTypeId}`,
+    DELETE: (eventId: string, ticketTypeId: string) => `/api/ticket-types/${eventId}/${ticketTypeId}`,
+  },
+  FORMS: {
+    CREATE: `/api/forms`, // /api/forms/:eventId
+    GET_ALL: (eventId: string) => `/api/forms/${eventId}`,
+    UPDATE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
+    DELETE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
+  },
+  TICKETS: {
+    GET: (ticketId: string) => `/api/tickets/${ticketId}`, // To be implemented in backend
+  }
 };
 
 export interface ImageSrcOptions {

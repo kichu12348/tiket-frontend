@@ -32,7 +32,7 @@ export default function EventCard({ event }: EventCardProps) {
   const isLive = now >= start && now <= end;
 
   return (
-    <Link href={`/edit/${event.id}`} className={styles.card}>
+    <Link href={`/edit/${event.id}/overview`} className={styles.card}>
       {/* 1. Core Info (Left Column) */}
       <div className={styles.infoColumn}>
         {/* Kicker: Live status and time */}
