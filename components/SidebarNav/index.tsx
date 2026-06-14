@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,7 +9,6 @@ import {
   ClipboardList,
   Settings,
   ChevronLeft,
-  ChevronRight,
   ArrowLeft,
 } from "lucide-react";
 import styles from "./SidebarNav.module.css";
