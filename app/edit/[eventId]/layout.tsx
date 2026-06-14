@@ -8,7 +8,6 @@ import { useEventStore } from "@/store/useEventStore";
 import SkeletonLoader from "./components/SkeletonLoader";
 import styles from "./EditLayout.module.css";
 import { toast } from "sonner";
-import { getImageUrl } from "@/constants/config";
 
 export default function EditEventLayout({
   children,
@@ -29,9 +28,6 @@ export default function EditEventLayout({
       try {
         setIsLoading(true);
         const eventData = await getEvent(eventId);
-        eventData.coverImage = eventData.coverImage
-          ? getImageUrl(eventData.coverImage)
-          : null;
         setEvent(eventData);
       } catch (error) {
         console.error("Failed to fetch event data", error);
@@ -45,11 +41,19 @@ export default function EditEventLayout({
     fetchEvent();
   }, [eventId, setEvent, setIsLoading, router]);
 
-  if (isLoading) {
-    return <SkeletonLoader />;
-  }
-
   const isDetailsPage = pathname?.endsWith("/details");
+
+  if (isLoading) {
+    return (
+      <div className={styles.layout}>
+        <div className={styles.background} />
+        {!isDetailsPage && <SidebarNav eventId={eventId} />}
+        <main className={styles.mainContent}>
+          <SkeletonLoader />
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.layout}>

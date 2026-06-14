@@ -5,7 +5,7 @@ export interface Event {
   coverImage: string | null;
   color: string | null;
   locationType: "online" | "offline" | "hybrid";
-  locationDetails: string | null;
+  locationDetails: any;
   startDate: string;
   endDate: string;
   timezone: string;
@@ -26,7 +26,7 @@ export interface CreateEventPayload {
   description: string;
   coverImage: string | null;
   locationType: "online" | "offline" | "hybrid";
-  locationDetails: string;
+  locationDetails: any;
   startDate: string;
   endDate: string;
   timezone: string;

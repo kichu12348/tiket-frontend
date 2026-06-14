@@ -61,7 +61,7 @@ export default function CreateEventPage() {
   const [locationType, setLocationType] = useState<
     "online" | "offline" | "hybrid"
   >("offline");
-  const [locationDetails, setLocationDetails] = useState("");
+  const [locationDetails, setLocationDetails] = useState<any>("");
   const [virtualLink, setVirtualLink] = useState("");
   const [description, setDescription] = useState("");
   const [isDescModalOpen, setIsDescModalOpen] = useState(false);

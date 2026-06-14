@@ -19,15 +19,7 @@ export default function EventCard({ event }: EventCardProps) {
   const end = new Date(event.endDate);
   const now = new Date();
 
-  let locationDetails = event.locationDetails as string;
-  let name = null;
-  if (locationDetails) {
-    try {
-      name = JSON.parse(locationDetails).name;
-    } catch (e) {
-      console.log(e);
-    }
-  }
+  const name = event.locationDetails.name;
 
   const isLive = now >= start && now <= end;
 
@@ -85,7 +77,7 @@ export default function EventCard({ event }: EventCardProps) {
         ) : (
           <div
             className={styles.generatedPoster}
-            style={{ backgroundColor: event.color || "#000" }}
+            style={{ backgroundColor: event.color || "var(--color-soft-bg)" }}
             aria-hidden="true"
           >
             <span className={styles.posterTitle}>{event.title}</span>

@@ -106,7 +106,11 @@ export default function ColorPicker({
           />
           <div className={styles.triggerLabel}>
             <span>Theme Color</span>
-            <span>{value || "Default"}</span>
+            <span>
+              {value && value === TRANSPARENT_BG
+                ? "transparent"
+                : value || "Default"}
+            </span>
           </div>
         </div>
         <Pipette size={16} className={styles.icon} />

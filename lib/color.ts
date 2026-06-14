@@ -36,14 +36,10 @@ export async function getBackgroundColor(imagePath: string) {
       hex: () => bgColor.hex(),
       rgb: () => bgColor.rgb(),
       hsl: () => bgColor.hsl(),
+      isError: false,
     };
   } catch (err) {
     console.error("Failed to extract color", err);
-    return {
-      rgba: () => "#111111",
-      hex: () => "#111111",
-      rgb: () => [17, 17, 17],
-      hsl: () => [0, 0, 0.06],
-    };
+    throw err;
   }
 }

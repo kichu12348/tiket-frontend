@@ -2,34 +2,34 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Check } from "lucide-react";
 import styles from "./Dropdown.module.css";
 
-interface DropdownOption {
+interface DropdownOption<T> {
   label: string;
-  value: string;
+  value: T;
   desc?: string;
   LeftComponent?: React.ReactNode;
   RightComponent?: React.ReactNode;
 }
 
-interface DropdownProps {
-  options: DropdownOption[];
+interface DropdownProps<T> {
+  options: DropdownOption<T>[];
   value: string;
-  onChange: (value: string) => void;
+  onChange: (value: T) => void;
   placeholder?: string;
   className?: string;
   popoverPosition?: "top" | "bottom";
   popoverAlign?: "left" | "right";
   renderTriggerContent?: (
-    selected: DropdownOption | undefined,
+    selected: DropdownOption<T> | undefined,
   ) => React.ReactNode;
   renderOption?: (
-    option: DropdownOption,
+    option: DropdownOption<T>,
     isSelected: boolean,
   ) => React.ReactNode;
   maxHeight?: string;
   alignSelf?: React.CSSProperties["alignSelf"];
 }
 
-export default function Dropdown({
+export default function Dropdown<T>({
   options,
   value,
   onChange,
@@ -41,7 +41,7 @@ export default function Dropdown({
   renderOption,
   maxHeight,
   alignSelf,
-}: DropdownProps) {
+}: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -101,11 +101,11 @@ export default function Dropdown({
           className={`${styles.popover} ${styles.scrollArea} ${popoverPosition === "top" ? styles.popoverTop : ""} ${popoverAlign === "right" ? styles.alignRight : ""}`}
           style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
         >
-          {options.map((option) => {
+          {options.map((option, index) => {
             const isSelected = value === option.value;
             return (
               <button
-                key={option.value}
+                key={`${option.value}-${index}`}
                 className={`${styles.optionItem} ${isSelected ? styles.selected : ""}`}
                 onClick={() => {
                   onChange(option.value);

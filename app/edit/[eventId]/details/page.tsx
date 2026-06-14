@@ -34,6 +34,10 @@ import { toast } from "sonner";
 import { validateEventPayload } from "@/lib/validators/event";
 import { useEventStore } from "@/store/useEventStore";
 import Image from "@/components/Image";
+import { getImageUrl } from "@/constants/config";
+import { TRANSPARENT_BG } from "@/constants/util";
+
+type EventStatus = "draft" | "published" | "cancelled" | "completed";
 
 export default function EditDetailsPage() {
   const router = useRouter();
@@ -75,14 +79,12 @@ export default function EditDetailsPage() {
   const [visibility, setVisibility] = useState<"public" | "private">("public");
 
   // Extra fields from Settings
-  const [status, setStatus] = useState<
-    "draft" | "published" | "cancelled" | "completed"
-  >("draft");
+  const [status, setStatus] = useState<EventStatus>("draft");
 
   useEffect(() => {
     if (event) {
       setBgColor(event.color || "#000000");
-      setCoverImageUrl(event.coverImage || "");
+      setCoverImageUrl(getImageUrl(event.coverImage || ""));
       setTitle(event.title || "");
       setTitleFont(event.fontFamily || "'Inter', sans-serif");
       setStartDate(event.startDate || new Date().toISOString());
@@ -141,6 +143,17 @@ export default function EditDetailsPage() {
           console.error("Error extracting color:", e);
         });
     }
+  };
+
+  const handleResetBgColor = () => {
+    getBackgroundColor(coverImageUrl)
+      .then((color) => {
+        setBgColor(color.hex());
+      })
+      .catch((e) => {
+        console.error("Error extracting color:", e);
+        toast.error("Failed to extract background color. Please try again.");
+      });
   };
 
   const handleSave = async () => {
@@ -238,7 +251,9 @@ export default function EditDetailsPage() {
     <div
       className={styles.page}
       style={
-        bgColor ? ({ "--dynamic-bg": bgColor } as React.CSSProperties) : {}
+        bgColor && bgColor !== TRANSPARENT_BG
+          ? ({ "--dynamic-bg": bgColor } as React.CSSProperties)
+          : {}
       }
     >
       <div className={styles.header}>
@@ -286,7 +301,11 @@ export default function EditDetailsPage() {
           </div>
 
           <FontPicker value={titleFont} onChange={setTitleFont} />
-          <ColorPicker value={bgColor} onChange={setBgColor} />
+          <ColorPicker
+            value={bgColor}
+            onChange={setBgColor}
+            reset={handleResetBgColor}
+          />
         </div>
 
         {/* Right Pane */}
@@ -328,19 +347,9 @@ export default function EditDetailsPage() {
                     value: "published",
                     LeftComponent: <Globe size={14} />,
                   },
-                  {
-                    label: "Cancelled",
-                    value: "cancelled",
-                    LeftComponent: <CheckCircle size={14} />,
-                  },
-                  {
-                    label: "Completed",
-                    value: "completed",
-                    LeftComponent: <CheckCircle size={14} />,
-                  },
                 ]}
                 value={status}
-                onChange={(value) => setStatus(value as any)}
+                onChange={(value: EventStatus) => setStatus(value)}
               />
             </div>
           </div>

@@ -23,20 +23,20 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: var(--surface-hover);
-  border: 1px solid var(--border-subtle);
-  color: var(--text-primary);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
+  background: var(--color-soft-bg);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.5rem;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  font-family: inherit;
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.2s ease;
   text-decoration: none;
 }
 
 .backBtn:hover {
-  background: var(--surface-elevated);
+  background: var(--color-soft-bg-hover);
 }
 
 .container {

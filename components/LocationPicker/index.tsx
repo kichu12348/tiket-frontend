@@ -17,10 +17,10 @@ import { GOOGLE_MAPS_API_KEY, MAP_ID } from "@/constants/config";
 
 interface LocationPickerProps {
   locationType: "online" | "offline" | "hybrid";
-  locationDetails: string;
+  locationDetails: any;
   virtualLink: string;
   onChangeLocationType: (type: "online" | "offline" | "hybrid") => void;
-  onChangeLocationDetails: (val: string) => void;
+  onChangeLocationDetails: (val: any) => void;
   onChangeVirtualLink: (val: string) => void;
 }
 
@@ -113,7 +113,7 @@ function LocationPickerInner({
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isMounted = useRef(true);
-  const prevLocationDetailsRef = useRef<string | null>(null);
+  const prevLocationDetailsRef = useRef<any>(null);
 
   useEffect(() => {
     isMounted.current = true;
@@ -134,8 +134,8 @@ function LocationPickerInner({
     if (locationDetails === prevLocationDetailsRef.current) return;
     prevLocationDetailsRef.current = locationDetails;
 
-    try {
-      const parsed = JSON.parse(locationDetails);
+    const parsed = typeof locationDetails === 'string' ? (() => { try { return JSON.parse(locationDetails) } catch { return locationDetails } })() : locationDetails;
+    if (parsed && typeof parsed === 'object') {
       if (parsed.address || parsed.name) {
         setSearchValue(parsed.address || parsed.name);
       }
@@ -144,9 +144,8 @@ function LocationPickerInner({
         setMarkerPosition(pos);
         setMapCenter(pos);
       }
-    } catch {
-      // Fallback if it's just a raw string
-      setSearchValue(locationDetails);
+    } else if (typeof parsed === 'string') {
+      setSearchValue(parsed);
     }
   }, [locationDetails]);
 
@@ -245,7 +244,7 @@ function LocationPickerInner({
               .then(() => {
                 if (!isMounted.current) return;
                 const name = placesService.displayName || "";
-                const newData = JSON.stringify({
+                const newData = {
                   name: name || "",
                   address: results[0].formatted_address,
                   placeId: placeId,
@@ -254,12 +253,12 @@ function LocationPickerInner({
                   city,
                   state,
                   country,
-                });
+                };
                 prevLocationDetailsRef.current = newData;
                 onChangeLocationDetails(newData);
               });
           } else {
-            const newData = JSON.stringify({
+            const newData = {
               name: "",
               address: results[0].formatted_address,
               placeId: placeId,
@@ -268,7 +267,7 @@ function LocationPickerInner({
               city,
               state,
               country,
-            });
+            };
             prevLocationDetailsRef.current = newData;
             onChangeLocationDetails(newData);
           }
@@ -317,7 +316,7 @@ function LocationPickerInner({
                 .then(() => {
                   if (!isMounted.current) return;
                   const name = placeObj.displayName || "";
-                  const newData = JSON.stringify({
+                  const newData = {
                     name: name || "",
                     address,
                     placeId,
@@ -326,12 +325,12 @@ function LocationPickerInner({
                     city,
                     state,
                     country,
-                  });
+                  };
                   prevLocationDetailsRef.current = newData;
                   onChangeLocationDetails(newData);
                 });
             } else {
-              const newData = JSON.stringify({
+              const newData = {
                 name: "",
                 address,
                 placeId,
@@ -340,7 +339,7 @@ function LocationPickerInner({
                 city,
                 state,
                 country,
-              });
+              };
               prevLocationDetailsRef.current = newData;
               onChangeLocationDetails(newData);
             }
@@ -391,14 +390,14 @@ function LocationPickerInner({
                   onChange={(e) => {
                     const val = e.target.value;
                     setSearchValue(val);
-                    // Emit a proper JSON string to prevent downstream JSON parse errors
-                    const newData = JSON.stringify({
+                    // Emit a proper JSON object to prevent downstream JSON parse errors
+                    const newData = {
                       name: "",
                       address: val,
                       placeId: "",
                       lat: 0,
                       lng: 0,
-                    });
+                    };
                     prevLocationDetailsRef.current = newData;
                     onChangeLocationDetails(newData);
                   }}

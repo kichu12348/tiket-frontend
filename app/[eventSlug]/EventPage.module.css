@@ -7,6 +7,11 @@
   transition: background-color 0.3s ease;
   scrollbar-color: var(--white-opacity-30) var(--event-bg);
   scrollbar-width: auto;
+  --event-brand-text-color: color-mix(
+    in srgb,
+    var(--event-bg) 30%,
+    var(--color-text-primary)
+  );
 }
 
 @media screen and (max-width: 768px) {
@@ -250,7 +255,7 @@
 
 .clickableMetaItem:hover .metaPrimary,
 .clickableMetaItem:hover .metaSecondary {
-  color: var(--event-bg);
+  color: var(--event-brand-text-color);
 }
 
 .clickableMetaItem:hover .linkArrow {

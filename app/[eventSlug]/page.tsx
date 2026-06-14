@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { getImageUrl } from "@/constants/config";
 import { FiMapPin } from "react-icons/fi";
 import { getEventBySlug, getMe } from "./api/eventApi";
-import { formatEventDates, parseLocationDetails } from "./utils/formatters";
+import { formatEventDates } from "./utils/formatters";
 import RegistrationCard from "./components/RegistrationCard";
 import EventLocation from "./components/EventLocation";
 import { FiArrowUpRight } from "react-icons/fi";
@@ -44,9 +44,9 @@ export async function generateViewport({
 }: PageProps): Promise<Viewport> {
   const resolvedParams = await params;
   const event = await getEventBySlug(resolvedParams.eventSlug);
-  if (!event) return { themeColor: "#3B3E2F" };
+  if (!event) return { themeColor: "#121316" };
   return {
-    themeColor: event.color,
+    themeColor: event.color || "#121316",
   };
 }
 
@@ -66,9 +66,11 @@ export default async function EventPage({ params }: PageProps) {
     formatEventDates(event.startDate, event.endDate);
 
   const customBg =
-    event.color === TRANSPARENT_BG ? "transparent" : event.color || "#3B3E2F";
+    event.color === TRANSPARENT_BG
+      ? "transparent"
+      : event.color || "transparent";
 
-  const locationData = parseLocationDetails(event.locationDetails);
+  const locationData = event.locationDetails;
   const { city, state, name } = locationData;
 
   return (
