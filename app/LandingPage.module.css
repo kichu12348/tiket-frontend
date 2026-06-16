@@ -8,66 +8,6 @@
   min-height: 100vh;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: var(--header-padding-y) 0;
-}
-
-.logo {
-  font-size: var(--font-size-logo);
-  font-weight: var(--font-weight-bold);
-  display: flex;
-  align-items: baseline;
-  letter-spacing: -0.03em;
-}
-
-.dot {
-  color: var(--color-accent-orange);
-}
-
-.signInBtn {
-  background: var(--color-btn-signin-bg);
-  color: var(--color-text-primary);
-  padding: var(--spacing-sm) var(--spacing-md);
-  backdrop-filter: blur(10px);
-  border: none;
-  outline: none;
-  border-radius: var(--radius-lg);
-  cursor: pointer;
-  font-size: var(--font-size-btn-sm);
-  font-weight: var(--font-weight-semibold);
-  transition:
-    background 0.2s,
-    border-color 0.2s;
-}
-
-.signInBtn:hover {
-  background: var(--color-btn-signin-hover);
-  backdrop-filter: blur(10px) brightness(1.5);
-}
-
-.avatarBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background-color: #ffd700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.8rem;
-  color: #000;
-  font-weight: bold;
-  text-decoration: none;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.avatarBtn:hover {
-  transform: scale(1.05);
-}
-
 .mainContent {
   display: flex;
   flex: 1;

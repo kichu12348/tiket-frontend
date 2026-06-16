@@ -1,5 +1,6 @@
 import styles from "./LandingPage.module.css";
 import GlassmorphismTicket from "./Ticket";
+import Navbar from "@/components/Navbar";
 import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { cookies } from "next/headers";
@@ -10,24 +11,7 @@ export default async function Home() {
 
   return (
     <div className={styles.container}>
-      <header className={styles.header}>
-        <div className={styles.logo}>
-          Tiket<span className={styles.dot}>.</span>
-        </div>
-        {token ? (
-          <Link
-            href="/home"
-            className={styles.avatarBtn}
-            aria-label="Go to Home"
-          >
-            :)
-          </Link>
-        ) : (
-          <Link href="/signin" className={styles.signInBtn}>
-            Sign In
-          </Link>
-        )}
-      </header>
+      <Navbar isAuthenticated={!!token} />
 
       <main className={styles.mainContent}>
         <div className={styles.leftColumn}>

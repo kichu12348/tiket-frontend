@@ -8,6 +8,7 @@ import { useEventStore } from "@/store/useEventStore";
 import SkeletonLoader from "./components/SkeletonLoader";
 import styles from "./EditLayout.module.css";
 import { toast } from "sonner";
+import Navbar from "@/components/Navbar";
 
 export default function EditEventLayout({
   children,
@@ -45,21 +46,33 @@ export default function EditEventLayout({
 
   if (isLoading) {
     return (
-      <div className={styles.layout}>
+      <div className={styles.pageWrapper}>
         <div className={styles.background} />
-        {!isDetailsPage && <SidebarNav eventId={eventId} />}
-        <main className={styles.mainContent}>
-          <SkeletonLoader />
-        </main>
+        {!isDetailsPage && (
+          <Navbar isAuthenticated={true} borderBottom={true} />
+        )}
+        <div className={styles.layout}>
+          {!isDetailsPage && <SidebarNav eventId={eventId} />}
+          <main className={styles.mainContent}>
+            <SkeletonLoader />
+          </main>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={styles.layout}>
+    <div className={styles.pageWrapper}>
       <div className={styles.background} />
-      {!isDetailsPage && <SidebarNav eventId={eventId} />}
-      <main className={styles.mainContent}>{children}</main>
+      <div style={{ position: "relative", zIndex: 20 }}>
+        {!isDetailsPage && (
+          <Navbar isAuthenticated={true} borderBottom={true} />
+        )}
+      </div>
+      <div className={styles.layout}>
+        {!isDetailsPage && <SidebarNav eventId={eventId} />}
+        <main className={styles.mainContent}>{children}</main>
+      </div>
     </div>
   );
 }
