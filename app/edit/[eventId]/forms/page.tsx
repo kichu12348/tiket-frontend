@@ -30,6 +30,7 @@ import { LocalField } from "./types";
 import StandardFieldCard from "./components/StandardFieldCard";
 import SortableFieldCard from "./components/SortableFieldCard";
 import FieldModal from "./components/FieldModal";
+import SkeletonLoader from "./components/SkeletonLoader";
 
 import { useFormData } from "./hooks/useFormData";
 import { useFormUI } from "./hooks/useFormUI";
@@ -118,18 +119,7 @@ export default function EditFormsPage() {
   /* ── Render ── */
   if (!event) return null;
   if (isLoading) {
-    return (
-      <div
-        className={styles.page}
-        style={{
-          flex: 1,
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <div className={styles.loading}>Loading form questions...</div>
-      </div>
-    );
+    return <SkeletonLoader />;
   }
 
   return (

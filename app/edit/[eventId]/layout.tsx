@@ -6,6 +6,7 @@ import SidebarNav from "@/components/SidebarNav";
 import { getEvent } from "@/api/events";
 import { useEventStore } from "@/store/useEventStore";
 import SkeletonLoader from "./components/SkeletonLoader";
+import FormsSkeletonLoader from "./forms/components/SkeletonLoader";
 import styles from "./EditLayout.module.css";
 import { toast } from "sonner";
 import Navbar from "@/components/Navbar";
@@ -45,8 +46,11 @@ export default function EditEventLayout({
   }, [eventId, setEvent, setIsLoading, router]);
 
   const isDetailsPage = pathname?.endsWith("/details");
+  const isFormsPage = pathname?.endsWith("/forms");
 
   if (isLoading) {
+    const CurrentSkeleton = isFormsPage ? FormsSkeletonLoader : SkeletonLoader;
+
     return (
       <div className={styles.pageWrapper}>
         <div className={styles.background} />
@@ -56,7 +60,7 @@ export default function EditEventLayout({
         <div className={styles.layout}>
           {!isDetailsPage && <SidebarNav eventId={eventId} />}
           <main className={styles.mainContent}>
-            <SkeletonLoader />
+            <CurrentSkeleton />
           </main>
         </div>
       </div>
