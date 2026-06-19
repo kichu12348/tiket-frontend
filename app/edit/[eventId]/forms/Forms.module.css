@@ -47,11 +47,11 @@
 }
 
 .iconPersonal {
-  color: #4ade80; /* Green */
+  color: var(--status-success); /* Green */
 }
 
 .iconCustom {
-  color: #fb923c; /* Orange */
+  color: var(--status-warning); /* Orange */
 }
 
 /* ── Page Tabs ── */
@@ -140,7 +140,7 @@
 /* ── Add Question Button ── */
 .addQuestionBtn {
   color: var(--text-primary);
-  padding: 0.6rem 1rem;
+  padding: 0.4rem 0.7rem;
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;

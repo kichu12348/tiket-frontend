@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Toaster } from "sonner";
+import { ConfirmProvider } from "@/components/ConfirmModal";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -57,6 +58,7 @@ export default function RootLayout({
             },
           }}
         />
+        <ConfirmProvider />
       </body>
     </html>
   );

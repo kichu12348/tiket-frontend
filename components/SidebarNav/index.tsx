@@ -4,12 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   LayoutDashboard,
-  FileText,
   Ticket,
   ClipboardList,
   Settings,
   ChevronLeft,
   ArrowLeft,
+  AppWindowMac,
 } from "lucide-react";
 import styles from "./SidebarNav.module.css";
 import { useSidebarStore } from "@/store/useSidebarStore";
@@ -28,7 +28,11 @@ export default function SidebarNav({ eventId }: SidebarNavProps) {
       label: "Overview",
       icon: LayoutDashboard,
     },
-    { href: `/edit/${eventId}/details`, label: "Details", icon: FileText },
+    {
+      href: `/edit/${eventId}/details`,
+      label: "Details",
+      icon: AppWindowMac,
+    },
     { href: `/edit/${eventId}/tickets`, label: "Tickets", icon: Ticket },
     { href: `/edit/${eventId}/forms`, label: "Forms", icon: ClipboardList },
     { href: `/edit/${eventId}/settings`, label: "Settings", icon: Settings },

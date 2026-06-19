@@ -36,7 +36,8 @@
   cursor: not-allowed;
 }
 
-.dangerBtn, .primaryBtn {
+.dangerBtn,
+.primaryBtn {
   padding: 0.5rem 1.25rem;
   border: none;
   border-radius: var(--radius-md);
@@ -63,7 +64,8 @@
   filter: brightness(1.1);
 }
 
-.dangerBtn:disabled, .primaryBtn:disabled {
+.dangerBtn:disabled,
+.primaryBtn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
 }

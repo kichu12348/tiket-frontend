@@ -1,7 +1,7 @@
 .customCard {
   background: rgba(255, 255, 255, 0.03);
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.5rem 0.6rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -14,8 +14,7 @@
 }
 
 .customCard[data-dragging="true"] {
-  opacity: 0.5;
-  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
   z-index: 100;
 }

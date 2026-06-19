@@ -1,21 +1,7 @@
-export const FIELD_TYPES = [
-  { label: "Text", value: "text" as const },
-  { label: "LongText", value: "long_text" as const },
-  { label: "Email", value: "email" as const },
-  { label: "Phone", value: "phone" as const },
-  { label: "SingleSelect", value: "single_select" as const },
-  { label: "MultiSelect", value: "multi_select" as const },
-  { label: "Radio", value: "radio" as const },
-  { label: "Checkbox", value: "checkbox" as const },
-  { label: "Number", value: "number" as const },
-  { label: "DateTime", value: "datetime" as const },
-  { label: "Date", value: "date" as const },
-  { label: "Time", value: "time" as const },
-  { label: "Rating", value: "rating" as const },
-  { label: "Url", value: "url" as const },
-];
+import { FieldType } from "@/types/form";
 
-export type FieldType = (typeof FIELD_TYPES)[number]["value"] | "select";
+export { FIELD_TYPES } from "@/types/form";
+export type { FieldType } from "@/types/form";
 
 export interface LocalField {
   localId: string;
@@ -25,6 +11,8 @@ export interface LocalField {
   fieldType: FieldType;
   isRequired: boolean;
   options: string[] | null;
+  minOptions?: number | null;
+  maxOptions?: number | null;
   sortOrder: number;
   page: number;
   isEditing?: boolean;

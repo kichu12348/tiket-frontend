@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { toast } from "sonner";
 import {
   getFormFields,
   createFormField,
@@ -7,28 +8,11 @@ import {
   deleteFormPage,
 } from "@/api/forms";
 import { FormField } from "@/types/form";
-import { toast } from "sonner";
-import { arrayMove } from "@dnd-kit/sortable";
-import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { LocalField, StandardField, StandardFieldStatus } from "../types";
+import { serverToLocal, getPagesFromFields } from "../functions/formHelpers";
 import { User, Mail, Phone } from "lucide-react";
-import { Event } from "@/store/useEventStore";
 
-function serverToLocal(field: FormField): LocalField {
-  return {
-    localId: field.id,
-    serverId: field.id,
-    name: field.name,
-    label: field.label,
-    fieldType: field.fieldType as any,
-    isRequired: field.isRequired,
-    options: field.options,
-    sortOrder: field.sortOrder,
-    page: field.page,
-  };
-}
-
-export function useFormEditor(event: Event | null) {
+export function useFormData(eventId?: string) {
   const [customFields, setCustomFields] = useState<LocalField[]>([]);
   const [standardFields, setStandardFields] = useState<StandardField[]>([
     {
@@ -43,18 +27,19 @@ export function useFormEditor(event: Event | null) {
       icon: <Mail size={16} />,
       status: "Required",
     },
-    { name: "phone", label: "Phone", icon: <Phone size={16} />, status: "Off" },
+    {
+      name: "phone",
+      label: "Phone",
+      icon: <Phone size={16} />,
+      status: "Off",
+    },
   ]);
-
   const [isLoading, setIsLoading] = useState(true);
-  const [activePage, setActivePage] = useState(1);
-  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  /* ── Data Fetching ── */
   const refreshFields = useCallback(async () => {
-    if (!event?.id) return;
+    if (!eventId) return;
     try {
-      const data = await getFormFields(event.id);
+      const data = await getFormFields(eventId);
 
       const custom: LocalField[] = [];
       const stdMap = new Map<string, FormField>();
@@ -69,6 +54,7 @@ export function useFormEditor(event: Event | null) {
 
       custom.sort((a, b) => a.sortOrder - b.sortOrder);
 
+      // Preserve editing state during refresh
       setCustomFields((prev) => {
         return custom.map((newField) => {
           const oldField = prev.find((p) => p.serverId === newField.serverId);
@@ -99,34 +85,18 @@ export function useFormEditor(event: Event | null) {
       console.error("Failed to fetch form fields", error);
       toast.error("Failed to load form fields.");
     }
-  }, [event?.id]);
+  }, [eventId]);
 
   useEffect(() => {
-    if (!event?.id) return;
     setIsLoading(true);
     refreshFields().finally(() => setIsLoading(false));
-  }, [refreshFields, event?.id]);
+  }, [refreshFields]);
 
-  /* ── Derived State ── */
-  const pages = useMemo(() => {
-    const pageNums = new Set(customFields.map((f) => f.page));
-    return Array.from(pageNums).sort((a, b) => a - b);
-  }, [customFields]);
-
-  const activePageFields = useMemo(
-    () =>
-      customFields
-        .filter((f) => f.page === activePage)
-        .sort((a, b) => a.sortOrder - b.sortOrder),
-    [customFields, activePage],
-  );
-
-  /* ── Standard Fields DB Sync ── */
   const updateStandardField = async (
     name: string,
     status: StandardFieldStatus,
   ) => {
-    if (!event?.id) return;
+    if (!eventId) return;
     const std = standardFields.find((f) => f.name === name);
     if (!std) return;
 
@@ -145,11 +115,11 @@ export function useFormEditor(event: Event | null) {
 
     try {
       if (status === "Off") {
-        if (std.serverId) await deleteFormField(event.id, std.serverId);
+        if (std.serverId) await deleteFormField(eventId, std.serverId);
       } else {
         const isReq = status === "Required";
         if (!std.serverId) {
-          await createFormField(event.id, {
+          await createFormField(eventId, {
             name: std.name,
             label: std.label,
             fieldType: std.name === "email" ? "email" : "text",
@@ -158,7 +128,7 @@ export function useFormEditor(event: Event | null) {
             sortOrder: 0,
           });
         } else {
-          await updateFormField(event.id, std.serverId, { isRequired: isReq });
+          await updateFormField(eventId, std.serverId, { isRequired: isReq });
         }
       }
       await refreshFields();
@@ -168,15 +138,15 @@ export function useFormEditor(event: Event | null) {
     }
   };
 
-  /* ── Custom Fields Actions ── */
-  const handleModalSave = async (
+  const saveCustomField = async (
     fieldData: Omit<LocalField, "isEditing" | "localId">,
-    modalMode: "add" | "edit",
-    editingField: LocalField | null
+    isEdit: boolean,
+    localId?: string, // Used for editing an existing field
+    activePage?: number,
   ) => {
-    if (!event?.id) return;
+    if (!eventId) return;
 
-    if (modalMode === "add") {
+    if (!isEdit) {
       const tempId = crypto.randomUUID();
       const pageFields = customFields.filter((f) => f.page === activePage);
       const maxSort = pageFields.reduce(
@@ -188,18 +158,28 @@ export function useFormEditor(event: Event | null) {
         ...fieldData,
         localId: tempId,
         sortOrder: maxSort + 1,
-        page: activePage,
+        page: activePage || 1,
       };
 
       setCustomFields((prev) => [...prev, newField]);
 
+      const needsConstraints = newField.fieldType === "multi_select";
+      const finalOptions =
+        needsConstraints && newField.options
+          ? {
+              choices: newField.options,
+              min: newField.minOptions || null,
+              max: newField.maxOptions || null,
+            }
+          : newField.options;
+
       try {
-        const created = await createFormField(event.id, {
+        const created = await createFormField(eventId, {
           name: newField.name,
           label: newField.label,
           fieldType: newField.fieldType,
           isRequired: newField.isRequired,
-          options: newField.options,
+          options: finalOptions,
           sortOrder: newField.sortOrder,
           page: newField.page,
         });
@@ -213,32 +193,42 @@ export function useFormEditor(event: Event | null) {
         setCustomFields((prev) => prev.filter((f) => f.localId !== tempId));
         throw err;
       }
-    } else if (modalMode === "edit" && editingField) {
+    } else if (isEdit && localId) {
+      const originalField = customFields.find((f) => f.localId === localId);
+      if (!originalField) return;
+
       const updatedField: LocalField = {
-        ...editingField,
+        ...originalField,
         ...fieldData,
       };
+
       setCustomFields((prev) =>
-        prev.map((f) =>
-          f.localId === updatedField.localId ? updatedField : f,
-        ),
+        prev.map((f) => (f.localId === localId ? updatedField : f)),
       );
 
       if (updatedField.serverId) {
+        const needsConstraints = updatedField.fieldType === "multi_select";
+        const finalOptions =
+          needsConstraints && updatedField.options
+            ? {
+                choices: updatedField.options,
+                min: updatedField.minOptions || null,
+                max: updatedField.maxOptions || null,
+              }
+            : updatedField.options;
+
         try {
-          await updateFormField(event.id, updatedField.serverId, {
+          await updateFormField(eventId, updatedField.serverId, {
             name: updatedField.name,
             label: updatedField.label,
             fieldType: updatedField.fieldType,
             isRequired: updatedField.isRequired,
-            options: updatedField.options,
+            options: finalOptions,
           });
         } catch (err) {
           toast.error("Failed to save changes.");
           setCustomFields((prev) =>
-            prev.map((f) =>
-              f.localId === editingField.localId ? editingField : f,
-            ),
+            prev.map((f) => (f.localId === localId ? originalField : f)),
           );
           throw err;
         }
@@ -247,15 +237,23 @@ export function useFormEditor(event: Event | null) {
   };
 
   const deleteCustomField = async (id: string) => {
-    if (!event?.id) return;
+    if (!eventId) {
+      toast.error("Event not found.");
+      return;
+    }
+
     const field = customFields.find((f) => f.localId === id);
-    if (!field) return;
+    if (!field) {
+      toast.error("Question not found.");
+      return;
+    }
 
     setCustomFields((prev) => prev.filter((f) => f.localId !== id));
 
     if (field.serverId) {
       try {
-        await deleteFormField(event.id, field.serverId);
+        const { message } = await deleteFormField(eventId, field.serverId);
+        toast.success(message);
       } catch (err) {
         toast.error("Failed to delete question.");
         setCustomFields((prev) => [...prev, field]);
@@ -264,98 +262,60 @@ export function useFormEditor(event: Event | null) {
     }
   };
 
-  const addPage = () => {
-    const maxPage = pages.length > 0 ? Math.max(...pages) : 0;
-    const newPage = maxPage + 1;
-    setActivePage(newPage);
-  };
+  const reorderCustomFields = async (
+    updatedFields: LocalField[],
+    originalFields: LocalField[],
+    activePage: number,
+  ) => {
+    if (!eventId) return;
 
-  const executeDeletePage = async (pageToDelete: number) => {
-    if (!event?.id) return;
+    setCustomFields((prev) => {
+      const otherPages = prev.filter((f) => f.page !== activePage);
+      return [...otherPages, ...updatedFields];
+    });
 
     try {
-      await deleteFormPage(event.id, pageToDelete);
-      await refreshFields();
-
-      if (activePage === pageToDelete) {
-        setActivePage(Math.max(1, pageToDelete - 1));
-      } else if (activePage > pageToDelete) {
-        setActivePage(activePage - 1);
+      for (const item of updatedFields) {
+        const original = originalFields.find((f) => f.localId === item.localId);
+        if (
+          original &&
+          original.sortOrder !== item.sortOrder &&
+          item.serverId
+        ) {
+          await updateFormField(eventId, item.serverId, {
+            sortOrder: item.sortOrder,
+          });
+        }
       }
-      toast.success(`Page ${pageToDelete} deleted.`);
+    } catch (e) {
+      toast.error("Failed to save reorder. Reverting.");
+      await refreshFields();
+    }
+  };
+
+  const deletePageFromDB = async (pageNum: number) => {
+    if (!eventId) return;
+    try {
+      await deleteFormPage(eventId, pageNum);
+      await refreshFields();
     } catch (e) {
       toast.error("Failed to delete page.");
       throw e;
     }
   };
 
-  /* ── Drag & Drop Handlers ── */
-  const handleDragStart = (e: DragStartEvent) => {
-    setActiveDragId(e.active.id as string);
-  };
-
-  const handleDragEnd = async (e: DragEndEvent) => {
-    setActiveDragId(null);
-    const { active, over } = e;
-    if (!over || active.id === over.id) return;
-
-    const activeIdx = activePageFields.findIndex(
-      (f) => f.localId === active.id,
-    );
-    const overIdx = activePageFields.findIndex((f) => f.localId === over.id);
-
-    if (activeIdx === -1 || overIdx === -1) return;
-
-    const reordered = arrayMove(activePageFields, activeIdx, overIdx);
-    const updated = reordered.map((f, i) => ({ ...f, sortOrder: i }));
-
-    setCustomFields((prev) => {
-      const otherPages = prev.filter((f) => f.page !== activePage);
-      return [...otherPages, ...updated];
-    });
-
-    if (!event?.id) return;
-
-    try {
-      for (const item of updated) {
-        const original = activePageFields.find(
-          (f) => f.localId === item.localId,
-        );
-        if (
-          original &&
-          original.sortOrder !== item.sortOrder &&
-          item.serverId
-        ) {
-          await updateFormField(event.id, item.serverId, {
-            sortOrder: item.sortOrder,
-          });
-        }
-      }
-    } catch (err) {
-      toast.error("Failed to save reorder. Reverting.");
-      await refreshFields();
-    }
-  };
+  const pages = useMemo(() => getPagesFromFields(customFields), [customFields]);
 
   return {
-    state: {
-      isLoading,
-      standardFields,
-      customFields,
-      activePageFields,
-      pages,
-      activePage,
-      activeDragId,
-    },
-    actions: {
-      setActivePage,
-      addPage,
-      executeDeletePage,
-      updateStandardField,
-      handleModalSave,
-      deleteCustomField,
-      handleDragStart,
-      handleDragEnd,
-    },
+    customFields,
+    standardFields,
+    isLoading,
+    pages,
+    refreshFields,
+    updateStandardField,
+    saveCustomField,
+    deleteCustomField,
+    reorderCustomFields,
+    deletePageFromDB,
   };
 }

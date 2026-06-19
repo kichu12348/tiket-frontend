@@ -1,5 +1,22 @@
 import React from "react";
-import { GripVertical, Edit2, Type, AlignLeft, List, CheckSquare, Calendar, Mail, Hash, Phone, ChevronDown, CircleDot, CalendarClock, Clock, Star, Link } from "lucide-react";
+import {
+  GripVertical,
+  Edit2,
+  Type,
+  AlignLeft,
+  List,
+  CheckSquare,
+  Calendar,
+  Mail,
+  Hash,
+  Phone,
+  ChevronDown,
+  CircleDot,
+  CalendarClock,
+  Clock,
+  Star,
+  Link,
+} from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { LocalField, FIELD_TYPES } from "../../types";
@@ -64,7 +81,7 @@ export default function SortableFieldCard({ field, onEdit }: Props) {
             {field.isRequired && (
               <span
                 style={{
-                  color: "#fb923c",
+                  color: "var(--status-danger)",
                   marginLeft: "0.5rem",
                   fontSize: "1rem",
                 }}
@@ -74,7 +91,9 @@ export default function SortableFieldCard({ field, onEdit }: Props) {
             )}
           </div>
           <div className={styles.customCardType}>
-            {["single_select", "multi_select", "radio", "select"].includes(field.fieldType) ? (
+            {["single_select", "multi_select", "radio", "select"].includes(
+              field.fieldType,
+            ) ? (
               <div
                 style={{
                   display: "flex",
@@ -83,15 +102,24 @@ export default function SortableFieldCard({ field, onEdit }: Props) {
                 }}
               >
                 <span>
-                  {field.options?.length || 0} options:{" "}
-                  {field.options?.join(", ")}
+                  {field.options?.length || 0}
+                  {field.options?.length === 1 ? " option" : " options"}
                 </span>
-                <span style={{ opacity: 0.6, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <span
+                  style={{
+                    opacity: 0.6,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
                   {TYPE_ICONS[field.fieldType]} {typeLabel}
                 </span>
               </div>
             ) : (
-              <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span
+                style={{ display: "flex", alignItems: "center", gap: "4px" }}
+              >
                 {TYPE_ICONS[field.fieldType]} {typeLabel}
               </span>
             )}
