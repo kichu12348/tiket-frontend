@@ -1,7 +1,4 @@
-"use client";
-
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { useEventStore } from "@/store/useEventStore";
 import {
   getFormFields,
   createFormField,
@@ -11,38 +8,15 @@ import {
 } from "@/api/forms";
 import { FormField } from "@/types/form";
 import { toast } from "sonner";
-import { Plus, User, Mail, Phone, HelpCircle, X, Layers } from "lucide-react";
-import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  DragEndEvent,
-  DragStartEvent,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import {
-  restrictToVerticalAxis,
-  restrictToParentElement,
-} from "@dnd-kit/modifiers";
-import styles from "./Forms.module.css";
-import { LocalField, StandardField, StandardFieldStatus } from "./types";
-import StandardFieldCard from "./components/StandardFieldCard";
-import SortableFieldCard from "./components/SortableFieldCard";
-import FieldModal from "./components/FieldModal";
-import ConfirmModal from "@/components/ConfirmModal";
+import { arrayMove } from "@dnd-kit/sortable";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+import { LocalField, StandardField, StandardFieldStatus } from "../types";
+import { User, Mail, Phone } from "lucide-react";
+import { Event } from "@/store/useEventStore";
 
-/* ── Main Page ── */
 function serverToLocal(field: FormField): LocalField {
   return {
-    localId: field.id, // We use server id as localId when available
+    localId: field.id,
     serverId: field.id,
     name: field.name,
     label: field.label,
@@ -54,10 +28,7 @@ function serverToLocal(field: FormField): LocalField {
   };
 }
 
-/* ── Main Page ── */
-export default function EditFormsPage() {
-  const { event } = useEventStore();
-
+export function useFormEditor(event: Event | null) {
   const [customFields, setCustomFields] = useState<LocalField[]>([]);
   const [standardFields, setStandardFields] = useState<StandardField[]>([
     {
@@ -79,21 +50,6 @@ export default function EditFormsPage() {
   const [activePage, setActivePage] = useState(1);
   const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  /* ── Modal State ── */
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMode, setModalMode] = useState<"add" | "edit">("add");
-  const [editingField, setEditingField] = useState<LocalField | null>(null);
-
-  const [pageToDelete, setPageToDelete] = useState<number | null>(null);
-  const [isDeletingPage, setIsDeletingPage] = useState(false);
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    }),
-  );
-
   /* ── Data Fetching ── */
   const refreshFields = useCallback(async () => {
     if (!event?.id) return;
@@ -113,7 +69,6 @@ export default function EditFormsPage() {
 
       custom.sort((a, b) => a.sortOrder - b.sortOrder);
 
-      // Preserve editing state during refresh
       setCustomFields((prev) => {
         return custom.map((newField) => {
           const oldField = prev.find((p) => p.serverId === newField.serverId);
@@ -147,9 +102,10 @@ export default function EditFormsPage() {
   }, [event?.id]);
 
   useEffect(() => {
+    if (!event?.id) return;
     setIsLoading(true);
     refreshFields().finally(() => setIsLoading(false));
-  }, [refreshFields]);
+  }, [refreshFields, event?.id]);
 
   /* ── Derived State ── */
   const pages = useMemo(() => {
@@ -174,7 +130,6 @@ export default function EditFormsPage() {
     const std = standardFields.find((f) => f.name === name);
     if (!std) return;
 
-    // Check validation: Either Name or Email must be Required
     if (status !== "Required") {
       const otherRequired = standardFields.some(
         (f) =>
@@ -213,21 +168,11 @@ export default function EditFormsPage() {
     }
   };
 
-  /* ── Custom Fields DB Sync ── */
-  const openAddModal = () => {
-    setModalMode("add");
-    setEditingField(null);
-    setIsModalOpen(true);
-  };
-
-  const openEditModal = (field: LocalField) => {
-    setModalMode("edit");
-    setEditingField(field);
-    setIsModalOpen(true);
-  };
-
+  /* ── Custom Fields Actions ── */
   const handleModalSave = async (
     fieldData: Omit<LocalField, "isEditing" | "localId">,
+    modalMode: "add" | "edit",
+    editingField: LocalField | null
   ) => {
     if (!event?.id) return;
 
@@ -302,6 +247,7 @@ export default function EditFormsPage() {
   };
 
   const deleteCustomField = async (id: string) => {
+    if (!event?.id) return;
     const field = customFields.find((f) => f.localId === id);
     if (!field) return;
 
@@ -309,7 +255,7 @@ export default function EditFormsPage() {
 
     if (field.serverId) {
       try {
-        await deleteFormField(event!.id, field.serverId);
+        await deleteFormField(event.id, field.serverId);
       } catch (err) {
         toast.error("Failed to delete question.");
         setCustomFields((prev) => [...prev, field]);
@@ -324,47 +270,33 @@ export default function EditFormsPage() {
     setActivePage(newPage);
   };
 
-  const confirmDeletePage = (pageNum: number) => {
-    if (pages.length <= 1) {
-      toast.error("You need at least one page.");
-      return;
-    }
-    setPageToDelete(pageNum);
-  };
+  const executeDeletePage = async (pageToDelete: number) => {
+    if (!event?.id) return;
 
-  const executeDeletePage = async () => {
-    if (!event?.id || pageToDelete === null) return;
-
-    setIsDeletingPage(true);
     try {
-      // Single backend call to delete page and shift subsequent pages down
       await deleteFormPage(event.id, pageToDelete);
-
       await refreshFields();
 
-      // Adjust active page
       if (activePage === pageToDelete) {
         setActivePage(Math.max(1, pageToDelete - 1));
       } else if (activePage > pageToDelete) {
         setActivePage(activePage - 1);
       }
       toast.success(`Page ${pageToDelete} deleted.`);
-      setPageToDelete(null);
     } catch (e) {
       toast.error("Failed to delete page.");
-    } finally {
-      setIsDeletingPage(false);
+      throw e;
     }
   };
 
   /* ── Drag & Drop Handlers ── */
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveDragId(event.active.id as string);
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveDragId(e.active.id as string);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
+  const handleDragEnd = async (e: DragEndEvent) => {
     setActiveDragId(null);
-    const { active, over } = event;
+    const { active, over } = e;
     if (!over || active.id === over.id) return;
 
     const activeIdx = activePageFields.findIndex(
@@ -382,8 +314,7 @@ export default function EditFormsPage() {
       return [...otherPages, ...updated];
     });
 
-    if (!event_data?.id) return;
-    const eventId = event_data.id;
+    if (!event?.id) return;
 
     try {
       for (const item of updated) {
@@ -395,156 +326,36 @@ export default function EditFormsPage() {
           original.sortOrder !== item.sortOrder &&
           item.serverId
         ) {
-          await updateFormField(eventId, item.serverId, {
+          await updateFormField(event.id, item.serverId, {
             sortOrder: item.sortOrder,
           });
         }
       }
-    } catch (e) {
+    } catch (err) {
       toast.error("Failed to save reorder. Reverting.");
       await refreshFields();
     }
   };
 
-  const event_data = event;
-
-  /* ── Render ── */
-  if (!event) return null;
-  if (isLoading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loading}>Loading form questions...</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.page}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>Registration Questions</h1>
-        <p className={styles.subtitle}>
-          We will ask guests the following questions when they register for the
-          event.
-        </p>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <User size={18} className={styles.iconPersonal} />
-          <span>Personal Information</span>
-        </div>
-        <div className={styles.personalGrid}>
-          {standardFields.map((field) => (
-            <StandardFieldCard
-              key={field.name}
-              field={field}
-              onChange={(status) => updateStandardField(field.name, status)}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className={styles.section}>
-        <div className={styles.sectionHeader} style={{ marginTop: "1rem" }}>
-          <HelpCircle size={18} className={styles.iconCustom} />
-          <span>Custom Questions</span>
-        </div>
-
-        {pages.length > 0 && (
-          <div className={styles.pageTabs}>
-            {pages.map((pageNum) => (
-              <div
-                key={pageNum}
-                style={{ display: "flex", alignItems: "center" }}
-              >
-                <button
-                  className={styles.pageTab}
-                  data-active={activePage === pageNum ? "true" : "false"}
-                  onClick={() => setActivePage(pageNum)}
-                >
-                  <Layers size={13} style={{ marginRight: 6, opacity: 0.6 }} />
-                  Page {pageNum}
-                </button>
-                {pages.length > 1 && (
-                  <button
-                    className={styles.deletePageBtn}
-                    onClick={() => confirmDeletePage(pageNum)}
-                    title={`Delete Page ${pageNum}`}
-                  >
-                    <X size={12} />
-                  </button>
-                )}
-              </div>
-            ))}
-            <button
-              className={styles.addPageBtn}
-              onClick={addPage}
-              title="Add Page"
-              style={{ marginLeft: "0.25rem" }}
-            >
-              <Plus size={14} />
-            </button>
-          </div>
-        )}
-
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragStart={handleDragStart}
-          onDragEnd={handleDragEnd}
-          modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-        >
-          <SortableContext
-            items={activePageFields.map((f) => f.localId)}
-            strategy={verticalListSortingStrategy}
-          >
-            <div className={styles.fieldsList}>
-              {activePageFields.length === 0 && (
-                <div className={styles.emptyState}>
-                  No custom questions added to this page yet.
-                </div>
-              )}
-              {activePageFields.map((field) => (
-                <SortableFieldCard
-                  key={field.localId}
-                  field={field}
-                  onEdit={() => openEditModal(field)}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-
-        <button className={styles.addQuestionBtn} onClick={openAddModal}>
-          <Plus size={16} />
-          Add Question
-        </button>
-      </div>
-
-      <FieldModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        mode={modalMode}
-        initialField={editingField}
-        onSave={handleModalSave}
-        onDelete={
-          modalMode === "edit" && editingField
-            ? () => deleteCustomField(editingField.localId)
-            : undefined
-        }
-      />
-
-      <ConfirmModal
-        isOpen={pageToDelete !== null}
-        onClose={() => setPageToDelete(null)}
-        onConfirm={executeDeletePage}
-        title="Delete Page"
-        message={`Are you sure you want to delete Page ${pageToDelete} and all its custom questions? This action cannot be undone.`}
-        confirmText="Delete Page"
-        cancelText="Cancel"
-        isConfirming={isDeletingPage}
-        danger={true}
-      />
-    </div>
-  );
+  return {
+    state: {
+      isLoading,
+      standardFields,
+      customFields,
+      activePageFields,
+      pages,
+      activePage,
+      activeDragId,
+    },
+    actions: {
+      setActivePage,
+      addPage,
+      executeDeletePage,
+      updateStandardField,
+      handleModalSave,
+      deleteCustomField,
+      handleDragStart,
+      handleDragEnd,
+    },
+  };
 }

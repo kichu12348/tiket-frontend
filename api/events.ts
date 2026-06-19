@@ -56,3 +56,16 @@ export const getEvent = async (id: string): Promise<Event> => {
   const response = await api.get(API_ENDPOINTS.EVENTS.GET(id));
   return response.data;
 };
+
+export interface EventHost {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  isCreator: boolean;
+}
+
+export const getEventHosts = async (id: string): Promise<EventHost[]> => {
+  const response = await api.get(API_ENDPOINTS.EVENTS.HOSTS(id));
+  return response.data;
+};

@@ -29,10 +29,12 @@ export default function EditEventLayout({
       try {
         setIsLoading(true);
         const eventData = await getEvent(eventId);
+        document.title = `${eventData.title}`;
         setEvent(eventData);
       } catch (error) {
         console.error("Failed to fetch event data", error);
         toast.error("Failed to load event data.");
+        document.title = `Error - Event Not Found`;
         router.push("/home");
       } finally {
         setIsLoading(false);

@@ -28,7 +28,7 @@ const DROPDOWN_OPTIONS = FONT_OPTIONS.map((f) => ({
 
 // Build a Google Fonts URL to preload all the fonts
 const GOOGLE_FONTS_URL = `https://fonts.googleapis.com/css2?${FONT_OPTIONS.map(
-  (f) => `family=${f.name.replace(/ /g, "+")}:wght@400;500;600;700`
+  (f) => `family=${f.name.replace(/ /g, "+")}:wght@400;500;600;700`,
 ).join("&")}&display=swap`;
 
 interface FontPickerProps {
@@ -56,6 +56,8 @@ export default function FontPicker({ value, onChange }: FontPickerProps) {
       onChange={onChange}
       popoverPosition="top"
       maxHeight="320px"
+      width="100%"
+      btnWidth="100%"
       renderTriggerContent={() => (
         <div className={styles.triggerInfo}>
           <span
@@ -76,7 +78,10 @@ export default function FontPicker({ value, onChange }: FontPickerProps) {
             {option.label}
           </span>
           {isSelected && (
-            <Check size={14} style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }} />
+            <Check
+              size={14}
+              style={{ color: "rgba(255,255,255,0.5)", flexShrink: 0 }}
+            />
           )}
         </>
       )}

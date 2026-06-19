@@ -27,6 +27,9 @@ interface DropdownProps<T> {
   ) => React.ReactNode;
   maxHeight?: string;
   alignSelf?: React.CSSProperties["alignSelf"];
+  width?: React.CSSProperties["width"];
+  btnWidth?: React.CSSProperties["width"];
+  btnColor?: React.CSSProperties["backgroundColor"];
 }
 
 export default function Dropdown<T>({
@@ -41,6 +44,9 @@ export default function Dropdown<T>({
   renderOption,
   maxHeight,
   alignSelf,
+  width = "maxContent",
+  btnWidth = "maxContent",
+  btnColor,
 }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -60,17 +66,26 @@ export default function Dropdown<T>({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const style: React.CSSProperties = {
+    width,
+    alignSelf: alignSelf || "unset",
+  };
+
   return (
     <div
       className={`${styles.container} ${className || ""}`}
       ref={containerRef}
-      style={alignSelf && { alignSelf }}
+      style={style}
     >
       <button
         type="button"
         className={styles.triggerBtn}
         onClick={() => setIsOpen(!isOpen)}
         data-empty={!selectedOption}
+        style={{
+          width: btnWidth,
+          ...(btnColor && { backgroundColor: btnColor }),
+        }}
       >
         {renderTriggerContent ? (
           renderTriggerContent(selectedOption)
@@ -99,7 +114,9 @@ export default function Dropdown<T>({
       {isOpen && (
         <div
           className={`${styles.popover} ${styles.scrollArea} ${popoverPosition === "top" ? styles.popoverTop : ""} ${popoverAlign === "right" ? styles.alignRight : ""}`}
-          style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
+          style={
+            maxHeight ? { maxHeight, overflowY: "auto", width } : { width }
+          }
         >
           {options.map((option, index) => {
             const isSelected = value === option.value;

@@ -43,3 +43,13 @@ export const deleteFormField = async (
   );
   return response.data;
 };
+
+export const deleteFormPage = async (
+  eventId: string,
+  pageNum: number
+): Promise<{ message: string }> => {
+  const response = await api.delete(
+    API_ENDPOINTS.FORMS.DELETE_PAGE(eventId, pageNum)
+  );
+  return response.data;
+};

@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
     UPDATE_SLUG: (id: string) => `/api/events/${id}/slug`,
     GET: (id: string) => `/api/events/${id}`,
     GET_BY_SLUG: (slug: string) => `/api/events/slug/${slug}`,
+    HOSTS: (id: string) => `/api/events/${id}/hosts`,
   },
   TICKET_TYPES: {
     CREATE: `/api/ticket-types`, // /api/ticket-types/:eventId
@@ -41,6 +42,7 @@ export const API_ENDPOINTS = {
     GET_ALL: (eventId: string) => `/api/forms/${eventId}`,
     UPDATE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
     DELETE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
+    DELETE_PAGE: (eventId: string, pageNum: number) => `/api/forms/${eventId}/pages/${pageNum}`,
   },
   TICKETS: {
     GET: (ticketId: string) => `/api/tickets/${ticketId}`, // To be implemented in backend

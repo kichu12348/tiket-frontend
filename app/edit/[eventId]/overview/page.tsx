@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useEventStore } from "@/store/useEventStore";
 import { format } from "date-fns";
 import Link from "next/link";
+import { getEventHosts, EventHost } from "@/api/events";
 import {
   Calendar,
   MapPin,
@@ -25,6 +27,18 @@ export default function EditOverviewPage() {
   const registeredCount = 0; // Placeholder until backend supports registrations
   const capacityPercentage =
     totalCapacity > 0 ? (registeredCount / totalCapacity) * 100 : 0;
+
+  const [hosts, setHosts] = useState<EventHost[]>([]);
+  const [isLoadingHosts, setIsLoadingHosts] = useState(true);
+
+  useEffect(() => {
+    if (event?.id) {
+      getEventHosts(event.id)
+        .then(setHosts)
+        .catch(console.error)
+        .finally(() => setIsLoadingHosts(false));
+    }
+  }, [event?.id]);
 
   const getLocationDisplay = () => {
     if (!event.locationDetails) return "TBA";
@@ -204,21 +218,38 @@ export default function EditOverviewPage() {
         </div>
 
         <div className={styles.listContainer}>
-          {/* Mocked with generic placeholder */}
-          <div className={styles.listItem}>
-            <div className={styles.userInfo}>
-              <div className={styles.avatar}>H</div>
-              <div className={styles.userDetails}>
-                <span className={styles.userName}>Event Host</span>
-                <span className={styles.userEmail}>host@example.com</span>
+          {isLoadingHosts ? (
+            <div className={styles.emptyState} style={{ padding: "1rem" }}>
+              <span className={styles.emptyStateText}>Loading hosts...</span>
+            </div>
+          ) : hosts.length > 0 ? (
+            hosts.map((host) => (
+              <div key={host.id} className={styles.listItem}>
+                <div className={styles.userInfo}>
+                  <div className={styles.avatar}>
+                    {host.name ? host.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <div className={styles.userDetails}>
+                    <span className={styles.userName}>{host.name}</span>
+                    <span className={styles.userEmail}>{host.email}</span>
+                  </div>
+                </div>
+                <div className={styles.userMeta}>
+                  <span
+                    className={`${styles.badge} ${
+                      host.isCreator ? styles.primary : ""
+                    }`}
+                  >
+                    {host.role}
+                  </span>
+                </div>
               </div>
+            ))
+          ) : (
+            <div className={styles.emptyState} style={{ padding: "1rem" }}>
+              <span className={styles.emptyStateText}>No hosts found.</span>
             </div>
-            <div className={styles.userMeta}>
-              <span className={`${styles.badge} ${styles.primary}`}>
-                Creator
-              </span>
-            </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
