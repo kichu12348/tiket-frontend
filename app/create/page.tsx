@@ -108,12 +108,12 @@ export default function CreateEventPage() {
       }
       // -------------------
 
-      let finalLocationDetails = locationDetails;
-      if (locationType === "online") {
-        finalLocationDetails = virtualLink;
-      } else if (locationType === "hybrid") {
-        finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
-      }
+      // let finalLocationDetails = locationDetails;
+      // if (locationType === "online") {
+      //   finalLocationDetails = virtualLink;
+      // } else if (locationType === "hybrid") {
+      //   finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
+      // }
 
       let finalCoverImage = null;
 

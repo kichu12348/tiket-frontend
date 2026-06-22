@@ -21,12 +21,33 @@ export interface Event {
   updatedAt: string;
 }
 
+/*"name": "Samagata Foundation",
+        "address": "Cobalt, 4th floor, 46/1, Church St, Haridevpur, Shanthala Nagar, Ashok Nagar, Bengaluru, Karnataka 560001, India",
+        "city": "Bengaluru",
+        "state": "Karnataka",
+        "country": "India",
+        "placeId": "ChIJ5Y8CEAAXrjsRDhd-9sSHi6w",
+        "lat": 12.9756186,
+        "lng": 77.60275589999999 */
+
+export interface LocationDetails {
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  placeId?: string;
+  lat?: number;
+  lng?: number;
+  link?: string;
+}
+
 export interface CreateEventPayload {
   title: string;
   description: string;
   coverImage: string | null;
   locationType: "online" | "offline" | "hybrid";
-  locationDetails: any;
+  locationDetails: LocationDetails | null;
   startDate: string;
   endDate: string;
   timezone: string;

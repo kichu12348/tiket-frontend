@@ -15,7 +15,6 @@ import {
   CalendarCheck,
   ChevronLeft,
   Link2,
-  Activity,
 } from "lucide-react";
 import styles from "./Details.module.css";
 import { getSignedUrl, uploadToCDN, updateEvent } from "@/api/events";
@@ -36,8 +35,7 @@ import { useEventStore } from "@/store/useEventStore";
 import Image from "@/components/Image";
 import { getImageUrl } from "@/constants/config";
 import { TRANSPARENT_BG } from "@/constants/util";
-
-type EventStatus = "draft" | "published" | "cancelled" | "completed";
+import { LocationDetails } from "@/types/event";
 
 export default function EditDetailsPage() {
   const router = useRouter();
@@ -69,17 +67,14 @@ export default function EditDetailsPage() {
   const [locationType, setLocationType] = useState<
     "online" | "offline" | "hybrid"
   >("offline");
-  const [locationDetails, setLocationDetails] = useState("");
+  const [locationDetails, setLocationDetails] =
+    useState<LocationDetails | null>(null);
   const [virtualLink, setVirtualLink] = useState("");
   const [description, setDescription] = useState("");
   const [isDescModalOpen, setIsDescModalOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [requireApproval, setRequireApproval] = useState(false);
   const [capacity, setCapacity] = useState("");
-  const [visibility, setVisibility] = useState<"public" | "private">("public");
-
-  // Extra fields from Settings
-  const [status, setStatus] = useState<EventStatus>("draft");
 
   useEffect(() => {
     if (event) {
@@ -119,8 +114,6 @@ export default function EditDetailsPage() {
       setDescription(event.description || "");
       setRequireApproval(event.requireApproval || false);
       setCapacity(event.capacity ? event.capacity.toString() : "");
-      setVisibility("public");
-      setStatus(event.status || "draft");
     }
   }, [event]);
 
@@ -177,11 +170,17 @@ export default function EditDetailsPage() {
         return;
       }
 
-      let finalLocationDetails = locationDetails;
+      let finalLocationDetails: LocationDetails | null =
+        locationDetails || null;
       if (locationType === "online") {
-        finalLocationDetails = virtualLink;
+        finalLocationDetails = {
+          link: virtualLink,
+        };
       } else if (locationType === "hybrid") {
-        finalLocationDetails = `Physical: ${locationDetails} | Virtual: ${virtualLink}`;
+        finalLocationDetails = {
+          ...(locationDetails || {}),
+          link: virtualLink,
+        };
       }
 
       let finalCoverImage = event.coverImage;
@@ -225,8 +224,6 @@ export default function EditDetailsPage() {
         requireApproval,
         capacity: capacity ? parseInt(capacity, 10) : null,
         color: bgColor,
-        visibility,
-        status,
       };
 
       const updated = await updateEvent(event.id, payload);
@@ -310,50 +307,6 @@ export default function EditDetailsPage() {
 
         {/* Right Pane */}
         <div className={styles.rightPane}>
-          <div className={styles.topToggles}>
-            <div className={styles.togglePill}>
-              <Dropdown
-                options={[
-                  {
-                    label: "Public",
-                    value: "public",
-                    LeftComponent: <Globe size={14} />,
-                    desc: "Anyone can find this event",
-                  },
-                  {
-                    label: "Private",
-                    value: "private",
-                    LeftComponent: <Lock size={14} />,
-                    desc: "Only people with the link can register",
-                  },
-                ]}
-                value={visibility}
-                onChange={(value) =>
-                  setVisibility(value as "public" | "private")
-                }
-              />
-            </div>
-
-            <div className={styles.togglePill}>
-              <Dropdown
-                options={[
-                  {
-                    label: "Draft",
-                    value: "draft",
-                    LeftComponent: <Activity size={14} />,
-                  },
-                  {
-                    label: "Published",
-                    value: "published",
-                    LeftComponent: <Globe size={14} />,
-                  },
-                ]}
-                value={status}
-                onChange={(value: EventStatus) => setStatus(value)}
-              />
-            </div>
-          </div>
-
           <input
             type="text"
             placeholder="Event Name"
