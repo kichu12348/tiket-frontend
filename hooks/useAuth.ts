@@ -19,7 +19,6 @@ export function useAuth() {
         email,
         otp,
       });
-      localStorage.setItem(TOKEN_KEY, res.data.token);
       return { success: true };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -77,7 +76,6 @@ export function useAuth() {
         password,
         name,
       });
-      localStorage.setItem(TOKEN_KEY, res.data.token);
       return { success: true };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {

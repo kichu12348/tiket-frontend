@@ -1,6 +1,7 @@
 import axios from "axios";
-import { API_URL, TOKEN_KEY } from "@/constants/config";
+import { API_URL } from "@/constants/config";
 import { removeToken } from "@/hooks/useToken";
+import { getToken } from "./getToken";
 
 const api = axios.create({
   baseURL: API_URL, // Assuming backend base url, e.g. http://localhost:3001
@@ -10,14 +11,14 @@ const api = axios.create({
   },
 });
 
-let token: string | null = null;
+let token: string | undefined = undefined;
 
 api.interceptors.request.use(
   async (config) => {
     // Only access localStorage if in browser environment
     if (typeof window !== "undefined") {
       if (!token) {
-        token = localStorage.getItem(TOKEN_KEY);
+        token = await getToken();
       }
       if (token && config.headers) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -38,7 +39,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       if (typeof window !== "undefined") {
         await removeToken();
-        token = null;
+        token = undefined;
         window.location.href = "/signin";
       }
     }
