@@ -1,8 +1,6 @@
 import { cookies } from "next/headers";
 import { NextRequest, NextResponse } from "next/server";
-import { API_ENDPOINTS } from "@/constants/config";
-
-const MAX_AGE = 63072000;
+import { API_ENDPOINTS, TOKEN_KEY, MAX_AGE } from "@/constants/config";
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +20,7 @@ export async function POST(req: NextRequest) {
 
     if (data.token) {
       const cookieJar = await cookies();
-      cookieJar.set("token", data.token, {
+      cookieJar.set(TOKEN_KEY, data.token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",

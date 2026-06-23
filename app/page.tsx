@@ -4,10 +4,11 @@ import Navbar from "@/components/Navbar";
 import { FiArrowRight } from "react-icons/fi";
 import Link from "next/link";
 import { cookies } from "next/headers";
+import { TOKEN_KEY } from "@/constants/config";
 
 export default async function Home() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+  const token = cookieStore.get(TOKEN_KEY)?.value;
 
   return (
     <div className={styles.container}>

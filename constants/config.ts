@@ -5,6 +5,10 @@ export const CDN_URL = process.env.NEXT_PUBLIC_CDN_URL!;
 export const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!;
 export const MAP_ID = process.env.NEXT_PUBLIC_MAP_ID!;
 
+//constants
+export const TOKEN_KEY = "authToken";
+export const MAX_AGE = 63072000;
+
 export const API_ENDPOINTS = {
   BACKEND: {
     AUTH: {
@@ -34,19 +38,24 @@ export const API_ENDPOINTS = {
   TICKET_TYPES: {
     CREATE: `/api/ticket-types`, // /api/ticket-types/:eventId
     GET_ALL: (eventId: string) => `/api/ticket-types/${eventId}`,
-    UPDATE: (eventId: string, ticketTypeId: string) => `/api/ticket-types/${eventId}/${ticketTypeId}`,
-    DELETE: (eventId: string, ticketTypeId: string) => `/api/ticket-types/${eventId}/${ticketTypeId}`,
+    UPDATE: (eventId: string, ticketTypeId: string) =>
+      `/api/ticket-types/${eventId}/${ticketTypeId}`,
+    DELETE: (eventId: string, ticketTypeId: string) =>
+      `/api/ticket-types/${eventId}/${ticketTypeId}`,
   },
   FORMS: {
     CREATE: `/api/forms`, // /api/forms/:eventId
     GET_ALL: (eventId: string) => `/api/forms/${eventId}`,
-    UPDATE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
-    DELETE: (eventId: string, fieldId: string) => `/api/forms/${eventId}/${fieldId}`,
-    DELETE_PAGE: (eventId: string, pageNum: number) => `/api/forms/${eventId}/pages/${pageNum}`,
+    UPDATE: (eventId: string, fieldId: string) =>
+      `/api/forms/${eventId}/${fieldId}`,
+    DELETE: (eventId: string, fieldId: string) =>
+      `/api/forms/${eventId}/${fieldId}`,
+    DELETE_PAGE: (eventId: string, pageNum: number) =>
+      `/api/forms/${eventId}/pages/${pageNum}`,
   },
   TICKETS: {
     GET: (ticketId: string) => `/api/tickets/${ticketId}`, // To be implemented in backend
-  }
+  },
 };
 
 export interface ImageSrcOptions {

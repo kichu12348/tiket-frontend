@@ -1,6 +1,6 @@
 import { useState } from "react";
 import axios, { AxiosError } from "axios";
-import { API_ENDPOINTS } from "@/constants/config";
+import { API_ENDPOINTS, TOKEN_KEY } from "@/constants/config";
 
 interface AuthErrorResponse {
   error?: string;
@@ -19,7 +19,7 @@ export function useAuth() {
         email,
         otp,
       });
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem(TOKEN_KEY, res.data.token);
       return { success: true };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -53,7 +53,7 @@ export function useAuth() {
           return { success: false, needsName: true };
         }
         setError(
-          axiosError.response?.data?.error || "Failed to send OTP. Try again."
+          axiosError.response?.data?.error || "Failed to send OTP. Try again.",
         );
       } else {
         setError("An unexpected error occurred. Please try again.");
@@ -67,7 +67,7 @@ export function useAuth() {
   const loginWithPassword = async (
     email: string,
     password: string,
-    name?: string
+    name?: string,
   ) => {
     setIsLoading(true);
     setError("");
@@ -77,7 +77,7 @@ export function useAuth() {
         password,
         name,
       });
-      localStorage.setItem("token", res.data.token);
+      localStorage.setItem(TOKEN_KEY, res.data.token);
       return { success: true };
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -89,7 +89,7 @@ export function useAuth() {
           return { success: false, needsName: true };
         }
         setError(
-          axiosError.response?.data?.error || "Invalid credentials. Try again."
+          axiosError.response?.data?.error || "Invalid credentials. Try again.",
         );
       } else {
         setError("An unexpected error occurred. Please try again.");

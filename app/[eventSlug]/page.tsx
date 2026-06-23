@@ -1,7 +1,7 @@
 import styles from "./EventPage.module.css";
 import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
-import { getImageUrl } from "@/constants/config";
+import { getImageUrl, TOKEN_KEY } from "@/constants/config";
 import { FiMapPin } from "react-icons/fi";
 import { getEventBySlug, getMe } from "./api/eventApi";
 import { formatEventDates } from "./utils/formatters";
@@ -56,7 +56,7 @@ export default async function EventPage({ params }: PageProps) {
   if (!event) return notFound();
 
   const cookieStore = await cookies();
-  const token = cookieStore.get("token")?.value;
+  const token = cookieStore.get(TOKEN_KEY)?.value;
   let user = null;
   if (token) {
     user = await getMe(token);
