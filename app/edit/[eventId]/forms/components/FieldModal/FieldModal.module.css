@@ -372,9 +372,29 @@
 .fileDropzone.dragOver {
   border-color: var(--color-text-primary);
   background-color: var(--color-soft-bg-hover);
+  background-image: radial-gradient(circle at center, rgba(118, 147, 184, 0.3) 0%, transparent 70%);
 }
 
 .uploadIcon {
   color: var(--color-text-soft);
   margin-bottom: 0.5rem;
+}
+
+/* ── Accordion Animations ── */
+.expandableContainer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s ease;
+  will-change: grid-template-rows;
+}
+
+.expandableContainer.expanded {
+  grid-template-rows: 1fr;
+}
+
+.expandableInner {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }

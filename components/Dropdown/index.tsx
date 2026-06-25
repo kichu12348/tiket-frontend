@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { ChevronDown, Check } from "lucide-react";
+import { DropdownMenu } from "radix-ui";
 import styles from "./Dropdown.module.css";
 
 interface DropdownOption<T> {
@@ -49,22 +50,8 @@ export default function Dropdown<T>({
   btnColor,
 }: DropdownProps<T>) {
   const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   const selectedOption = options.find((opt) => opt.value === value);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   const style: React.CSSProperties = {
     width,
@@ -72,107 +59,116 @@ export default function Dropdown<T>({
   };
 
   return (
-    <div
-      className={`${styles.container} ${className || ""}`}
-      ref={containerRef}
-      style={style}
-    >
-      <button
-        type="button"
-        className={styles.triggerBtn}
-        onClick={() => setIsOpen(!isOpen)}
-        data-empty={!selectedOption}
-        style={{
-          width: btnWidth,
-          ...(btnColor && { backgroundColor: btnColor }),
-        }}
-      >
-        {renderTriggerContent ? (
-          renderTriggerContent(selectedOption)
-        ) : (
-          <div
-            style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
+    <div className={`${styles.container} ${className || ""}`} style={style}>
+      <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen} modal={false}>
+        <DropdownMenu.Trigger asChild>
+          <button
+            type="button"
+            className={styles.triggerBtn}
+            data-empty={!selectedOption}
+            style={{
+              width: btnWidth,
+              ...(btnColor && { backgroundColor: btnColor }),
+            }}
           >
-            {selectedOption?.LeftComponent}
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "flex-start",
-              }}
-            >
-              <span>{selectedOption ? selectedOption.label : placeholder}</span>
-            </div>
-          </div>
-        )}
-        <ChevronDown
-          size={16}
-          className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
-        />
-      </button>
-
-      {isOpen && (
-        <div
-          className={`${styles.popover} ${styles.scrollArea} ${popoverPosition === "top" ? styles.popoverTop : ""} ${popoverAlign === "right" ? styles.alignRight : ""}`}
-          style={
-            maxHeight ? { maxHeight, overflowY: "auto", width } : { width }
-          }
-        >
-          {options.map((option, index) => {
-            const isSelected = value === option.value;
-            return (
-              <button
-                key={`${option.value}-${index}`}
-                className={`${styles.optionItem} ${isSelected ? styles.selected : ""}`}
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                }}
+            {renderTriggerContent ? (
+              renderTriggerContent(selectedOption)
+            ) : (
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}
               >
-                {renderOption ? (
-                  renderOption(option, isSelected)
-                ) : (
-                  <>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "0.75rem",
-                      }}
-                    >
-                      {option.LeftComponent}
-                      <div
-                        style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          alignItems: "flex-start",
-                          gap: "0.15rem",
-                        }}
-                      >
-                        <span>{option.label}</span>
-                        {option.desc && (
-                          <span
+                {selectedOption?.LeftComponent}
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "flex-start",
+                  }}
+                >
+                  <span>{selectedOption ? selectedOption.label : placeholder}</span>
+                </div>
+              </div>
+            )}
+            <ChevronDown
+              size={16}
+              className={`${styles.chevron} ${isOpen ? styles.chevronOpen : ""}`}
+            />
+          </button>
+        </DropdownMenu.Trigger>
+
+        <DropdownMenu.Portal>
+          <DropdownMenu.Content
+            className={`${styles.popover} ${styles.scrollArea}`}
+            side={popoverPosition}
+            align={popoverAlign === "right" ? "end" : "start"}
+            style={{
+              width,
+              maxHeight: maxHeight || "auto",
+              overflowY: maxHeight ? "auto" : "visible",
+              zIndex: 1000,
+            }}
+            sideOffset={6}
+          >
+            {options.map((option, index) => {
+              const isSelected = value === option.value;
+              return (
+                <DropdownMenu.Item
+                  key={`${String(option.value)}-${index}`}
+                  asChild
+                  onSelect={(e) => {
+                    // Item automatically closes the menu on select
+                    onChange(option.value);
+                  }}
+                >
+                  <button
+                    className={`${styles.optionItem} ${isSelected ? styles.selected : ""}`}
+                  >
+                    {renderOption ? (
+                      renderOption(option, isSelected)
+                    ) : (
+                      <>
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.75rem",
+                          }}
+                        >
+                          {option.LeftComponent}
+                          <div
                             style={{
-                              fontSize: "0.8rem",
-                              color: "var(--color-text-secondary)",
-                              fontWeight: 400,
+                              display: "flex",
+                              flexDirection: "column",
+                              alignItems: "flex-start",
+                              gap: "0.15rem",
                             }}
                           >
-                            {option.desc}
-                          </span>
+                            <span>{option.label}</span>
+                            {option.desc && (
+                              <span
+                                style={{
+                                  fontSize: "0.8rem",
+                                  color: "var(--color-text-secondary)",
+                                  fontWeight: 400,
+                                }}
+                              >
+                                {option.desc}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {isSelected && (
+                          <Check size={14} className={styles.checkIcon} />
                         )}
-                      </div>
-                    </div>
-                    {isSelected && (
-                      <Check size={14} className={styles.checkIcon} />
+                      </>
                     )}
-                  </>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
+                  </button>
+                </DropdownMenu.Item>
+              );
+            })}
+          </DropdownMenu.Content>
+        </DropdownMenu.Portal>
+      </DropdownMenu.Root>
     </div>
   );
 }

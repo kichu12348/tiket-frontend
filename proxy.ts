@@ -6,8 +6,6 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get(TOKEN_KEY)?.value;
   const { pathname } = request.nextUrl;
 
-  console.log(pathname);
-
   if (pathname === "/") {
     if (token) {
       return NextResponse.redirect(new URL("/home", request.url));

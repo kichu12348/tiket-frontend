@@ -412,59 +412,63 @@ export default function FieldModal({
                 </button>
               </div>
 
-              {isBulkAdding ? (
-                <div
-                  className={`${styles.fileDropzone} ${isDraggingFile ? styles.dragOver : ""}`}
-                  onDragOver={handleDragOver}
-                  onDragLeave={handleDragLeave}
-                  onDrop={handleDrop}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Upload size={20} className={styles.uploadIcon} />
-                  <p>Click or drag a CSV or JSON file here to import options</p>
-                  <input
-                    type="file"
-                    accept=".csv,.json,.txt"
-                    ref={fileInputRef}
-                    style={{ display: "none" }}
-                    onChange={handleFileSelect}
-                  />
+              <div className={`${styles.expandableContainer} ${isBulkAdding ? styles.expanded : ""}`}>
+                <div className={styles.expandableInner}>
+                  <div
+                    className={`${styles.fileDropzone} ${isDraggingFile ? styles.dragOver : ""}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Upload size={20} className={styles.uploadIcon} />
+                    <p>Click or drag a CSV or JSON file here to import options</p>
+                    <input
+                      type="file"
+                      accept=".csv,.json,.txt"
+                      ref={fileInputRef}
+                      style={{ display: "none" }}
+                      onChange={handleFileSelect}
+                    />
+                  </div>
                 </div>
-              ) : (
-                <div
-                  className={styles.tagInputWrapper}
-                  onClick={() => tagInputRef.current?.focus()}
-                >
-                  {options.map((opt, i) => (
-                    <span key={i} className={styles.tag}>
-                      {opt}
-                      <button
-                        className={styles.removeTagBtn}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          removeTag(i);
-                        }}
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                  <input
-                    ref={tagInputRef}
-                    type="text"
-                    className={styles.tagInput}
-                    placeholder={options.length === 0 ? "Add options" : ""}
-                    value={tagInput}
-                    onChange={(e) => setTagInput(e.target.value)}
-                    onKeyDown={handleTagKeyDown}
-                  />
+              </div>
+
+              <div className={`${styles.expandableContainer} ${!isBulkAdding ? styles.expanded : ""}`}>
+                <div className={styles.expandableInner}>
+                  <div
+                    className={styles.tagInputWrapper}
+                    onClick={() => tagInputRef.current?.focus()}
+                  >
+                    {options.map((opt, i) => (
+                      <span key={i} className={styles.tag}>
+                        {opt}
+                        <button
+                          className={styles.removeTagBtn}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            removeTag(i);
+                          }}
+                        >
+                          <X size={12} />
+                        </button>
+                      </span>
+                    ))}
+                    <input
+                      ref={tagInputRef}
+                      type="text"
+                      className={styles.tagInput}
+                      placeholder={options.length === 0 ? "Add options" : ""}
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={handleTagKeyDown}
+                    />
+                  </div>
+                  <p className={styles.hint}>
+                    Press Enter or Tab key to add a new option.
+                  </p>
                 </div>
-              )}
-              {!isBulkAdding && (
-                <p className={styles.hint}>
-                  Press Enter or Tab key to add a new option.
-                </p>
-              )}
+              </div>
 
               {fieldType === "multi_select" && (
                 <div

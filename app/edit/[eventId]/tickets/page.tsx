@@ -1,7 +1,8 @@
 "use client";
 
 import { useEventStore } from "@/store/useEventStore";
-import TicketTypesPanel from "../components/TicketTypesPanel";
+import TicketTypesPanel from "./components/TicketTypesPanel";
+import styles from "./Tickets.module.css";
 
 export default function EditTicketsPage() {
   const { event } = useEventStore();
@@ -9,19 +10,10 @@ export default function EditTicketsPage() {
   if (!event) return null;
 
   return (
-    <div style={{ padding: "2.5rem", maxWidth: "800px" }}>
-      <div style={{ marginBottom: "2rem" }}>
-        <h1
-          style={{
-            fontSize: "2rem",
-            fontWeight: 700,
-            margin: 0,
-            color: "var(--text-primary)",
-          }}
-        >
-          Tickets
-        </h1>
-        <p style={{ color: "var(--text-secondary)", marginTop: "0.5rem" }}>
+    <div className={styles.page}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Tickets</h1>
+        <p className={styles.subtitle}>
           Manage your ticket tiers, pricing, and availability.
         </p>
       </div>

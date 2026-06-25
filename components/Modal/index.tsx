@@ -2,6 +2,7 @@ import styles from "./Modal.module.css";
 import { createPortal } from "react-dom";
 
 import { X } from "lucide-react";
+import { useEffect } from "react";
 
 interface ModalProps {
   isOpen: boolean;
@@ -13,6 +14,16 @@ interface ModalProps {
   className?: string;
 }
 
+const addModalBodyClass = () => {
+  document.body.classList.add("popover");
+  document.documentElement.classList.add("popover");
+};
+
+const removeModalBodyClass = () => {
+  document.body.classList.remove("popover");
+  document.documentElement.classList.remove("popover");
+};
+
 const Modal: React.FC<ModalProps> = ({
   isOpen,
   onClose,
@@ -22,6 +33,18 @@ const Modal: React.FC<ModalProps> = ({
   width,
   className = "",
 }) => {
+  useEffect(() => {
+    if (isOpen) {
+      addModalBodyClass();
+    } else {
+      removeModalBodyClass();
+    }
+
+    return () => {
+      removeModalBodyClass();
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   return createPortal(
