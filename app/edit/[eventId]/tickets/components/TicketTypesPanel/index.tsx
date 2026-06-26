@@ -1,22 +1,35 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  getTicketTypes,
-  createTicketType,
-  updateTicketType,
-  deleteTicketType,
-} from "@/api/tickets";
+import { getTicketTypes, deleteTicketType, reorderTicketTypes } from "@/api/tickets";
 import { TicketType } from "@/types/ticketType";
 import { toast } from "sonner";
-import { Plus, Edit2, Trash2, Ticket, Globe } from "lucide-react";
-import Modal from "@/components/Modal";
-import Switch from "@/components/Switch";
+import { Plus, Ticket } from "lucide-react";
 import styles from "./TicketTypesPanel.module.css";
 import { confirm } from "@/components/ConfirmModal";
 import { useEventStore } from "@/store/useEventStore";
-import DatePicker from "@/components/DatePicker";
-import TimePicker from "@/components/TimePicker";
+import TicketEditModal from "../TicketEditModal";
+import SortableTicketCard from "./SortableTicketCard";
+
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 
 interface Props {
   eventId: string;
@@ -27,19 +40,14 @@ export default function TicketTypesPanel({ eventId }: Props) {
   const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingTicket, setEditingTicket] = useState<TicketType | null>(null);
 
-  // Form State
-  const [name, setName] = useState("");
-  const [price, setPrice] = useState("");
-  const [quantityLimit, setQuantityLimit] = useState("");
-  const [isTransferable, setIsTransferable] = useState(true);
-  const [saleStart, setSaleStart] = useState("");
-  const [saleEnd, setSaleEnd] = useState("");
-  const [timezone, setTimezone] = useState(
-    event?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     fetchTicketTypes();
@@ -59,77 +67,8 @@ export default function TicketTypesPanel({ eventId }: Props) {
   };
 
   const openModal = (ticket?: TicketType) => {
-    if (ticket) {
-      setEditingId(ticket.id);
-      setName(ticket.name);
-      setPrice(ticket.price.toString());
-      setQuantityLimit(
-        ticket.quantityLimit ? ticket.quantityLimit.toString() : "",
-      );
-      setIsTransferable(ticket.isTransferable ?? true);
-      setSaleStart(ticket.saleStart || event?.registrationStart || new Date().toISOString());
-      setSaleEnd(ticket.saleEnd || event?.registrationEnd || new Date(Date.now() + 86400000).toISOString());
-    } else {
-      setEditingId(null);
-      setName("");
-      setPrice("");
-      setQuantityLimit("");
-      setIsTransferable(true);
-      setSaleStart(event?.registrationStart || new Date().toISOString());
-      setSaleEnd(event?.registrationEnd || new Date(Date.now() + 86400000).toISOString());
-    }
+    setEditingTicket(ticket || null);
     setIsModalOpen(true);
-  };
-
-  const handleSave = async () => {
-    if (!name.trim()) {
-      toast.error("Ticket name is required.");
-      return;
-    }
-    if (price === "" || isNaN(Number(price)) || Number(price) < 0) {
-      toast.error("Please enter a valid price (0 for free).");
-      return;
-    }
-    if (!saleStart || !saleEnd) {
-      toast.error("Sale start and end dates are required.");
-      return;
-    }
-    if (new Date(saleStart) >= new Date(saleEnd)) {
-      toast.error("Sale start date must be before end date.");
-      return;
-    }
-    const maxDate = event?.registrationEnd || event?.endDate;
-    if (maxDate && new Date(saleEnd) > new Date(maxDate)) {
-      toast.error("Sale end date cannot be after the event or registration ends.");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        name,
-        price: Number(price),
-        quantityLimit: quantityLimit ? parseInt(quantityLimit, 10) : null,
-        isTransferable,
-        saleStart,
-        saleEnd,
-      };
-
-      if (editingId) {
-        await updateTicketType(eventId, editingId, payload);
-        toast.success("Ticket type updated.");
-      } else {
-        await createTicketType(eventId, payload);
-        toast.success("Ticket type created.");
-      }
-      setIsModalOpen(false);
-      fetchTicketTypes();
-    } catch (error) {
-      console.error("Failed to save ticket type", error);
-      toast.error("Failed to save ticket type.");
-    } finally {
-      setIsSubmitting(false);
-    }
   };
 
   const handleDelete = async (ticketId: string) => {
@@ -150,9 +89,40 @@ export default function TicketTypesPanel({ eventId }: Props) {
     });
   };
 
+  const handleDragEnd = async (e: DragEndEvent) => {
+    const { active, over } = e;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = ticketTypes.findIndex((t) => t.id === active.id);
+    const newIndex = ticketTypes.findIndex((t) => t.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const reordered = arrayMove(ticketTypes, oldIndex, newIndex);
+    const updated = reordered.map((t, i) => ({ ...t, sortOrder: i }));
+
+    // Optimistic UI update
+    setTicketTypes(updated);
+
+    try {
+      await reorderTicketTypes(
+        eventId,
+        updated.map((t) => ({ id: t.id, sortOrder: t.sortOrder }))
+      );
+    } catch (error) {
+      console.error("Failed to reorder tickets", error);
+      toast.error("Failed to save new order.");
+      // Revert if it fails
+      fetchTicketTypes();
+    }
+  };
+
   if (isLoading) {
     return <div className={styles.loading}>Loading ticket types...</div>;
   }
+
+  const timezone =
+    event?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
     <div className={styles.panel}>
@@ -176,128 +146,40 @@ export default function TicketTypesPanel({ eventId }: Props) {
             </p>
           </div>
         ) : (
-          ticketTypes.map((ticket) => (
-            <div key={ticket.id} className={styles.ticketCard}>
-              <div className={styles.ticketInfo}>
-                <div className={styles.ticketHeader}>
-                  <span className={styles.ticketName}>{ticket.name}</span>
-                  <span className={styles.ticketPrice}>
-                    {Number(ticket.price) === 0 ? "Free" : `₹${ticket.price}`}
-                  </span>
-                </div>
-                <div className={styles.ticketMeta}>
-                  {ticket.quantityLimit
-                    ? `Limit: ${ticket.quantityLimit}`
-                    : "Unlimited"}
-                  {ticket.isTransferable
-                    ? " • Transferable"
-                    : " • Non-transferable"}
-                </div>
-              </div>
-              <div className={styles.ticketActions}>
-                <button
-                  className={styles.iconBtn}
-                  onClick={() => openModal(ticket)}
-                >
-                  <Edit2 size={16} />
-                </button>
-                <button
-                  className={`${styles.iconBtn} ${styles.iconBtnDanger}`}
-                  onClick={() => handleDelete(ticket.id)}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+            modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+          >
+            <SortableContext
+              items={ticketTypes.map((t) => t.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              {ticketTypes.map((ticket) => (
+                <SortableTicketCard
+                  key={ticket.id}
+                  ticket={ticket}
+                  onEdit={() => openModal(ticket)}
+                  onDelete={() => handleDelete(ticket.id)}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 
-      <Modal
+      <TicketEditModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        title={editingId ? "Edit Ticket Type" : "Create Ticket Type"}
-        width={465}
-        className={styles.modalContent}
-      >
-        <div className={styles.formBody}>
-          <div className={styles.formGroup}>
-            <label>Ticket Name</label>
-            <input
-              type="text"
-              className={styles.input}
-              placeholder="e.g. General Admission"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Price (₹)</label>
-            <input
-              type="number"
-              className={styles.input}
-              placeholder="0.00 for free"
-              value={price}
-              onChange={(e) => setPrice(e.target.value)}
-              min="0"
-              step="0.01"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <label>Quantity Limit</label>
-            <input
-              type="number"
-              className={styles.input}
-              placeholder="Leave empty for unlimited"
-              value={quantityLimit}
-              onChange={(e) => setQuantityLimit(e.target.value)}
-              min="1"
-            />
-          </div>
-          <div className={styles.formGroup}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
-              <label style={{ margin: 0 }}>Sales Period</label>
-              <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", display: "flex", alignItems: "center", gap: "0.25rem" }}>
-                <Globe size={12} /> {timezone}
-              </span>
-            </div>
-            
-            <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                 <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", width: "35px" }}>Start</span>
-                 <div className={styles.pickersBox}>
-                    <DatePicker date={saleStart} onChange={setSaleStart} />
-                    <TimePicker date={saleStart} onChange={setSaleStart} />
-                 </div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
-                 <span style={{ fontSize: "0.85rem", color: "var(--text-secondary)", width: "35px" }}>End</span>
-                 <div className={styles.pickersBox}>
-                    <DatePicker date={saleEnd} onChange={setSaleEnd} />
-                    <TimePicker date={saleEnd} onChange={setSaleEnd} />
-                 </div>
-              </div>
-            </div>
-          </div>
-          <div className={styles.switchRow}>
-            <span>Allow Transfers</span>
-            <Switch checked={isTransferable} onChange={setIsTransferable} />
-          </div>
-          <div className={styles.footer}>
-            <button
-              className={styles.submitBtn}
-              onClick={handleSave}
-              disabled={isSubmitting}
-            >
-              {isSubmitting
-                ? "Saving..."
-                : editingId
-                  ? "Save Changes"
-                  : "Create Ticket"}
-            </button>
-          </div>
-        </div>
-      </Modal>
+        eventId={eventId}
+        ticket={editingTicket}
+        onSave={fetchTicketTypes}
+        timezone={timezone}
+        eventRegistrationStart={event?.registrationStart}
+        eventRegistrationEnd={event?.registrationEnd}
+        eventEndDate={event?.endDate}
+      />
     </div>
   );
 }

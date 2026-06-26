@@ -12,6 +12,8 @@ interface ModalProps {
   leftAction?: React.ReactNode;
   width?: string | number;
   className?: string;
+  headerClassName?: string;
+  withoutPadding?: boolean;
 }
 
 const addModalBodyClass = () => {
@@ -32,6 +34,8 @@ const Modal: React.FC<ModalProps> = ({
   leftAction,
   width,
   className = "",
+  headerClassName = "",
+  withoutPadding = false,
 }) => {
   useEffect(() => {
     if (isOpen) {
@@ -50,12 +54,12 @@ const Modal: React.FC<ModalProps> = ({
   return createPortal(
     <div className={styles.modalOverlay} onClick={onClose}>
       <div
-        className={`${styles.modalContent} ${className}`}
+        className={`${styles.modalContent} ${className} ${withoutPadding ? styles.withoutPadding : ""}`}
         onClick={(e) => e.stopPropagation()}
         style={width ? { width, maxWidth: "90vw" } : undefined}
       >
         <div
-          className={styles.modalHeader}
+          className={`${styles.modalHeader} ${headerClassName}`}
           style={leftAction ? { justifyContent: "space-between" } : undefined}
         >
           <div className={styles.headerLeft}>

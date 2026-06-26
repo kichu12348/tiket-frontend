@@ -44,6 +44,17 @@ export const deleteTicketType = async (
   return response.data;
 };
 
+export const reorderTicketTypes = async (
+  eventId: string,
+  orderedIds: { id: string; sortOrder: number }[]
+): Promise<{ message: string }> => {
+  const response = await api.put(
+    API_ENDPOINTS.TICKET_TYPES.REORDER(eventId),
+    orderedIds
+  );
+  return response.data;
+};
+
 // Will fetch individual attendee ticket payload
 export const getTicketPass = async (ticketId: string): Promise<any> => {
   const response = await api.get(API_ENDPOINTS.TICKETS.GET(ticketId));

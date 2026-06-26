@@ -11,6 +11,7 @@ export interface TicketType {
   refundableUntil: string | null;
   isTransferable: boolean;
   maxTransfers: number;
+  sortOrder: number;
   createdAt: string;
   updatedAt: string;
 }
