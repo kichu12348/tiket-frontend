@@ -57,6 +57,15 @@ export const API_ENDPOINTS = {
   TICKETS: {
     GET: (ticketId: string) => `/api/tickets/${ticketId}`, // To be implemented in backend
   },
+  TEAM: {
+    ROLES_CREATE: (eventId: string) => `/api/teams/${eventId}/roles`,
+    ROLES_GET: (eventId: string) => `/api/teams/${eventId}/roles`,
+    ROLES_UPDATE: (eventId: string, roleId: string) => `/api/teams/${eventId}/roles/${roleId}`,
+    ROLES_DELETE: (eventId: string, roleId: string) => `/api/teams/${eventId}/roles/${roleId}`,
+    MEMBERS_ADD: (eventId: string) => `/api/teams/${eventId}/members`,
+    MEMBERS_GET: (eventId: string) => `/api/teams/${eventId}/members`,
+    MEMBERS_DELETE: (eventId: string, memberId: string) => `/api/teams/${eventId}/members/${memberId}`,
+  },
 };
 
 export interface ImageSrcOptions {
