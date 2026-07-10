@@ -4,7 +4,15 @@ import { useState, useEffect } from "react";
 import { getRoles, createRole, updateRole, deleteRole } from "@/api/team";
 import { EventRole } from "@/types/team";
 import { toast } from "sonner";
-import { CheckCircle2, Edit2, Plus, ShieldAlert, Trash2, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  CheckCircle2,
+  Edit2,
+  Plus,
+  ShieldAlert,
+  Trash2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import styles from "./RolesTab.module.css";
 import { confirm } from "@/components/ConfirmModal";
 import Modal from "@/components/Modal";
@@ -120,7 +128,9 @@ export default function RolesTab({ eventId }: { eventId: string }) {
   };
 
   if (isLoading) {
-    return <div style={{ color: "var(--text-secondary)" }}>Loading roles...</div>;
+    return (
+      <div style={{ color: "var(--text-secondary)" }}>Loading roles...</div>
+    );
   }
 
   return (
@@ -190,7 +200,10 @@ export default function RolesTab({ eventId }: { eventId: string }) {
                           ?.label || p;
                       return (
                         <div key={p} className={styles.permItem}>
-                          <CheckCircle2 size={14} className={styles.checkIcon} />
+                          <CheckCircle2
+                            size={14}
+                            className={styles.checkIcon}
+                          />
                           <span>{label}</span>
                         </div>
                       );
@@ -212,10 +225,10 @@ export default function RolesTab({ eventId }: { eventId: string }) {
         )}
       </div>
 
-      <Modal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
-        title={editingRole ? "Edit Role" : "Create New Role"} 
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={editingRole ? "Edit Role" : "Create New Role"}
         width={465}
         className={styles.modalContent}
         headerClassName={styles.modalHeaderStyle}
@@ -253,8 +266,8 @@ export default function RolesTab({ eventId }: { eventId: string }) {
             </div>
 
             <div className={styles.footer}>
-              <button 
-                type="submit" 
+              <button
+                type="submit"
                 className={styles.submitBtn}
                 onClick={handleSave}
               >
