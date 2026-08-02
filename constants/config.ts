@@ -57,6 +57,10 @@ export const API_ENDPOINTS = {
   TICKETS: {
     GET: (ticketId: string) => `/api/tickets/${ticketId}`, // To be implemented in backend
   },
+  ORDERS: {
+    CREATE: `/api/orders`,
+    PAY: (orderId: string) => `/api/orders/${orderId}/pay`,
+  },
   TEAM: {
     ROLES_CREATE: (eventId: string) => `/api/teams/${eventId}/roles`,
     ROLES_GET: (eventId: string) => `/api/teams/${eventId}/roles`,

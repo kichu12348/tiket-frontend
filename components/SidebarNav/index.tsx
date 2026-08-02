@@ -8,7 +8,6 @@ import {
   ClipboardList,
   Settings,
   ChevronLeft,
-  ArrowLeft,
   AppWindowMac,
   UsersRound,
 } from "lucide-react";
@@ -89,7 +88,7 @@ export default function SidebarNav({ eventId }: SidebarNavProps) {
               className={styles.backToDashboard}
               title="Back to Dashboard"
             >
-              <ArrowLeft size={18} strokeWidth={2} className={styles.icon} />
+              <ChevronLeft size={18} strokeWidth={2} className={styles.icon} />
               <span className={styles.label}>Back to Dashboard</span>
             </Link>
           </div>

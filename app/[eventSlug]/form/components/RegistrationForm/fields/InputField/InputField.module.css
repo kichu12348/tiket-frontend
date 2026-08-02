@@ -1,0 +1,31 @@
+.input,
+.textarea {
+  width: 100%;
+  background: var(--color-soft-bg);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0.65rem;
+  padding: 0.65rem 0.85rem;
+  color: var(--color-text-primary);
+  font-size: 0.92rem;
+  font-family: inherit;
+  outline: none;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+  resize: none;
+}
+
+.input::placeholder,
+.textarea::placeholder {
+  color: var(--color-text-muted);
+}
+
+.input:focus,
+.textarea:focus {
+  border-color: var(--border-strong);
+  background: var(--color-soft-bg-hover);
+}
+
+.inputError {
+  border-color: var(--color-error) !important;
+}

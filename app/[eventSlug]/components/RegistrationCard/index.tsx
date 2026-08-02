@@ -1,6 +1,7 @@
 import styles from "./RegistrationCard.module.css";
 import { Event } from "@/types/event";
 import { FaUserCheck } from "react-icons/fa";
+import Link from "next/link";
 
 interface RegistrationCardProps {
   event: Event;
@@ -45,9 +46,15 @@ export default function RegistrationCard({
                 <span className={styles.userEmail}>{user.email}</span>
               </div>
             </div>
-            <button className={styles.joinBtn}>
+            <Link
+              href={`/${event.slug}/form`}
+              className={styles.joinBtn}
+              style={{
+                textAlign: "center",
+              }}
+            >
               {event.requireApproval ? "Request to Join" : "Register"}
-            </button>
+            </Link>
           </>
         ) : (
           <>
