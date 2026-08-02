@@ -3,7 +3,7 @@
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: none; /* NO BORDER RULE */
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -108,7 +108,9 @@
   border: none !important;
   border-radius: var(--radius-md, 8px) !important;
   font-weight: 500 !important;
-  transition: background 0.2s ease, color 0.2s ease !important;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease !important;
 }
 
 .navBtnSecondary:hover {
