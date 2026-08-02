@@ -8,13 +8,14 @@ const INPUT_TYPE_MAP: Partial<Record<FieldType, string>> = {
   email: "email",
   phone: "tel",
   number: "number",
-  date: "date",
-  datetime: "datetime-local",
-  time: "time",
   url: "url",
 };
 
-export default function InputField({ field, control, error }: FieldRendererProps) {
+export default function InputField({
+  field,
+  control,
+  error,
+}: FieldRendererProps) {
   const isLongText = field.fieldType === "long_text";
   const inputType = INPUT_TYPE_MAP[field.fieldType] ?? "text";
 

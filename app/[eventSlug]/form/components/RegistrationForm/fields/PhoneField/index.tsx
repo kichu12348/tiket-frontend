@@ -18,7 +18,7 @@ export interface CountryDial {
 }
 
 const ALL_COUNTRIES: CountryDial[] = (countryData as CountryDial[]).filter(
-  (c) => !!c.dial_code
+  (c) => !!c.dial_code,
 );
 
 const TIMEZONE_COUNTRY_MAP: Record<string, string> = {
@@ -59,8 +59,7 @@ export function getDefaultCountry(timezone?: string): CountryDial {
     if (city) {
       const match = ALL_COUNTRIES.find(
         (c) =>
-          c.name.toLowerCase().includes(city) ||
-          c.code.toLowerCase() === city
+          c.name.toLowerCase().includes(city) || c.code.toLowerCase() === city,
       );
       if (match) return match;
     }
@@ -76,10 +75,7 @@ export default function PhoneField({
   error,
   timezone,
 }: FieldRendererProps) {
-  const defaultCountry = useMemo(
-    () => getDefaultCountry(timezone),
-    [timezone]
-  );
+  const defaultCountry = useMemo(() => getDefaultCountry(timezone), [timezone]);
   const [selectedCountry, setSelectedCountry] =
     useState<CountryDial>(defaultCountry);
   const [search, setSearch] = useState("");
@@ -92,7 +88,7 @@ export default function PhoneField({
       (c) =>
         c.name.toLowerCase().includes(q) ||
         c.code.toLowerCase().includes(q) ||
-        (c.dial_code && c.dial_code.includes(q))
+        (c.dial_code && c.dial_code.includes(q)),
     );
   }, [search]);
 
@@ -118,9 +114,7 @@ export default function PhoneField({
         const handleSelectCountry = (country: CountryDial) => {
           setSelectedCountry(country);
           setOpen(false);
-          const fullNumber = rawPhone
-            ? `${country.dial_code} ${rawPhone}`
-            : "";
+          const fullNumber = rawPhone ? `${country.dial_code} ${rawPhone}` : "";
           f.onChange(fullNumber);
         };
 
@@ -178,6 +172,7 @@ export default function PhoneField({
                             src={c.image}
                             alt={c.name}
                             className={styles.flagImg}
+                            loading="lazy"
                           />
                           <span className={styles.optionName}>{c.name}</span>
                         </div>
