@@ -6,6 +6,8 @@ import {
   UpdateTicketTypePayload,
 } from "@/types/ticketType";
 
+import { TicketPassData } from "@/types/ticket";
+
 export const getTicketTypes = async (eventId: string): Promise<TicketType[]> => {
   const response = await api.get(API_ENDPOINTS.TICKET_TYPES.GET_ALL(eventId));
   return response.data;
@@ -55,8 +57,8 @@ export const reorderTicketTypes = async (
   return response.data;
 };
 
-// Will fetch individual attendee ticket payload
-export const getTicketPass = async (ticketId: string): Promise<any> => {
+// Fetch individual attendee ticket pass payload
+export const getTicketPass = async (ticketId: string): Promise<TicketPassData> => {
   const response = await api.get(API_ENDPOINTS.TICKETS.GET(ticketId));
   return response.data;
 };

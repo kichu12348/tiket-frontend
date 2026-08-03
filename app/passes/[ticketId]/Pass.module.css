@@ -1,242 +1,217 @@
-.page {
+.pageWrapper {
   min-height: 100vh;
-  background-color: #f5f5f7; /* Light Apple-esque background */
+  background-color: var(--color-bg-base, #121316);
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  align-items: flex-start;
   padding: 3rem 1rem;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-}
-
-.passContainer {
-  width: 100%;
-  max-width: 400px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.pass {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  position: relative;
   overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  position: relative;
+  box-sizing: border-box;
 }
 
-.invalidPass {
-  opacity: 0.8;
-  filter: grayscale(0.5);
-}
-
-.header {
-  background: #111111;
-  color: #ffffff;
-  padding: 1.5rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.headerTop {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.ticketType {
-  font-size: 0.85rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.statusBadge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  background: #28a745;
-  color: #fff;
-}
-
-.statusBadge[data-status="checked-in"] {
-  background: #ffc107;
-  color: #000;
-}
-
-.statusBadge[data-status="cancelled"] {
-  background: #dc3545;
-}
-
-.eventName {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
-}
-
-.detailsGrid {
-  padding: 1.5rem;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.25rem;
-}
-
-.detailItem {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.detailItem:nth-child(3) {
-  grid-column: span 2;
-}
-
-.detailLabel {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #888888;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.detailValue {
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: #111111;
-  line-height: 1.4;
-}
-
-.divider {
-  border: none;
-  border-top: 2px dashed #eeeeee;
-  margin: 0 1.5rem;
-}
-
-.qrSection {
-  padding: 2rem 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  background: #ffffff;
-}
-
-.qrWrapper {
-  background: #ffffff;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 1px solid #eeeeee;
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.watermark {
+.glowTopRight {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-30deg);
-  font-size: 2rem;
-  font-weight: 900;
-  color: rgba(220, 53, 69, 0.8);
-  border: 4px solid rgba(220, 53, 69, 0.8);
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  text-transform: uppercase;
+  top: -180px;
+  right: -180px;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
   pointer-events: none;
 }
 
-.ticketId {
-  font-family: monospace;
-  font-size: 0.85rem;
-  color: #666666;
+.glowBottomLeft {
+  position: absolute;
+  bottom: -180px;
+  left: -180px;
+  width: 450px;
+  height: 450px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(0, 0, 0, 0) 70%
+  );
+  pointer-events: none;
 }
 
-.instructions {
-  font-size: 0.85rem;
-  color: #888888;
-  text-align: center;
-  max-width: 80%;
-}
-
-.actions {
+/* Machine Frame Container */
+.machineWrapper {
   display: flex;
-  justify-content: center;
-}
-
-.actionBtn {
-  background: #007aff;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  padding: 0.75rem 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.actionBtn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
-}
-
-.loading, .error {
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
-  font-size: 1.2rem;
-  font-weight: 500;
-  color: #666;
-  background: #f5f5f7;
+  width: 100%;
+  max-width: 310px;
+  position: relative;
+  z-index: 1;
 }
 
-/* Print Styles */
-@media print {
-  @page {
-    margin: 0;
-    size: auto;
-  }
-  
-  body {
-    background: #ffffff !important;
-  }
+/* 3D Machine Dispenser Slot Opening */
+.slotContainer {
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
 
-  .page {
+/* Upper Bevel / Top Lip of the Machine Slot */
+.slotTopLip {
+  width: calc(100% + 24px);
+  height: 18px;
+  background: linear-gradient(180deg, #242731 0%, #0f1015 100%);
+  border-radius: 8px 8px 3px 3px;
+  box-shadow:
+    0 6px 16px rgba(0, 0, 0, 0.85),
+    inset 0 1px 1px rgba(255, 255, 255, 0.2),
+    inset 0 -4px 6px rgba(0, 0, 0, 0.95);
+  position: relative;
+  z-index: 20;
+  margin-bottom: -12px;
+}
+
+/* Lower Bevel / Bottom Lip of the Machine Slot */
+.slotBottomLip {
+  width: calc(100% + 24px);
+  height: 14px;
+  background: linear-gradient(180deg, #0a0b0e 0%, #1a1c24 100%);
+  border-radius: 3px 3px 8px 8px;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.9),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  position: absolute;
+  top: 8px;
+  z-index: 2;
+}
+
+/* Dark Inner Mouth Cavity */
+.slotCavity {
+  position: absolute;
+  top: 4px;
+  width: 100%;
+  height: 18px;
+  background: #020203;
+  border-radius: 4px;
+  box-shadow: inset 0 5px 10px rgba(0, 0, 0, 1);
+  z-index: 1;
+}
+
+/* Ticket Viewport clipping sliding motion */
+.ticketViewport {
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+  z-index: 10;
+  padding-top: 12px;
+  padding-bottom: 1.5rem;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Complete Animated Ticket Object */
+.ticketWrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+}
+
+/* Slim Physical Ticket Card Body */
+.passCard {
+  width: 100%;
+  background: #ffffff;
+  color: #111827;
+  border-radius: 2px 2px 0 0;
+  padding: 1.25rem 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-sizing: border-box;
+  position: relative;
+}
+
+/* Top Inner Shadow on Ticket from Machine Mouth Overhang */
+.passCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.25) 0%,
+    rgba(0, 0, 0, 0) 100%
+  );
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* Horizontal Perforation Line with Inward Side Cutout Notches */
+.perforationWrapper {
+  position: relative;
+  margin: 0.4rem -1.15rem;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.notchLeftSvg,
+.notchRightSvg {
+  position: absolute;
+  top: 0;
+  height: 24px;
+  width: 12px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.notchLeftSvg {
+  left: 0;
+}
+
+.notchRightSvg {
+  right: 0;
+}
+
+.dashedLine {
+  width: calc(100% - 28px);
+  border-top: 2.5px dashed #111827;
+  margin: 0 auto;
+}
+
+@media print {
+  .pageWrapper {
     background: #ffffff !important;
     padding: 0 !important;
-    min-height: auto;
-    display: block;
+    min-height: auto !important;
   }
 
-  .passContainer {
-    max-width: 100%;
-    width: 100%;
-    margin: 0 auto;
-  }
-
-  .pass {
-    box-shadow: none !important;
-    border: 1px solid #dddddd;
-    border-radius: 0;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .header {
-    background: #111111 !important;
-    color: #ffffff !important;
-  }
-
-  .actions {
+  .slotTopLip,
+  .slotBottomLip,
+  .slotCavity,
+  .glowTopRight,
+  .glowBottomLeft {
     display: none !important;
+  }
+
+  .passCard {
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: 1px solid #e0e0e0 !important;
+  }
+
+  :global(body) {
+    background: #ffffff !important;
+    color: #000000 !important;
   }
 }

@@ -81,6 +81,14 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  /* White Ticket Card Tokens */
+  --ticket-card-bg: #ffffff;
+  --ticket-card-text-primary: #111827;
+  --ticket-card-text-secondary: #4b5563;
+  --ticket-card-text-muted: #6b7280;
+  --ticket-card-tag-bg: #f3f4f6;
+  --ticket-card-border-dashed: #e5e7eb;
 }
 
 .light {

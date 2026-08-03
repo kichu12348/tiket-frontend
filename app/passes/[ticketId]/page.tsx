@@ -1,136 +1,106 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React from "react";
 import { useParams } from "next/navigation";
-import QRCode from "react-qr-code";
+import { motion } from "framer-motion";
+import { useTicketPass } from "./hooks/useTicketPass";
+import { PassHeader } from "./components/PassHeader";
+import { PassDetails } from "./components/PassDetails";
+import { PassQRCode } from "./components/PassQRCode";
+import { PassActions } from "./components/PassActions";
+import { PassError } from "./components/PassError";
+import { TornEdge } from "./components/TornEdge";
 import styles from "./Pass.module.css";
-import { format } from "date-fns";
-
-// Mocking the ticket data structure that the backend will eventually provide
-interface TicketPassPayload {
-  ticketId: string;
-  qrCode: string; // The raw payload for the QR
-  status: "valid" | "checked-in" | "cancelled";
-  eventName: string;
-  ticketTypeName: string;
-  attendeeName: string;
-  orderId: string;
-  startDate: string;
-  locationDetails: string;
-  locationType: "online" | "offline" | "hybrid";
-  timezone: string;
-}
+import { downloadImg } from "./utils/downloadImage";
 
 export default function TicketPassPage() {
-  const { ticketId } = useParams();
-  const [ticket, setTicket] = useState<TicketPassPayload | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const params = useParams();
+  const ticketId = params?.ticketId as string | undefined;
 
-  useEffect(() => {
-    // In the future, this will be: await getTicketPass(ticketId as string);
-    // Simulating a backend fetch
-    setTimeout(() => {
-      setTicket({
-        ticketId: ticketId as string,
-        qrCode: `TKT-${ticketId}-VAL-XYZ123`,
-        status: "valid",
-        eventName: "Summer Night Live",
-        ticketTypeName: "General Admission",
-        attendeeName: "Jane Doe",
-        orderId: "ORD-987654321",
-        startDate: new Date(Date.now() + 86400000 * 5).toISOString(), // 5 days from now
-        locationDetails: "Skyline Arena, Kochi, Kerala",
-        locationType: "offline",
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      });
-      setIsLoading(false);
-    }, 1000);
-  }, [ticketId]);
+  const { ticket, isLoading, error } = useTicketPass(ticketId);
 
-  if (isLoading) {
-    return <div className={styles.loading}>Loading your ticket pass...</div>;
-  }
-
-  if (!ticket) {
-    return <div className={styles.error}>Ticket not found.</div>;
-  }
-
-  const isInvalid = ticket.status !== "valid";
+  const ticketRef = React.useRef<HTMLDivElement>(null);
 
   return (
-    <div className={styles.page}>
-      <div className={styles.passContainer}>
-        {/* Apple Wallet Style Semantic Ticket */}
-        <div className={`${styles.pass} ${isInvalid ? styles.invalidPass : ""}`}>
-          
-          {/* Header */}
-          <div className={styles.header}>
-            <div className={styles.headerTop}>
-              <span className={styles.ticketType}>{ticket.ticketTypeName}</span>
-              <span className={styles.statusBadge} data-status={ticket.status}>
-                {ticket.status.toUpperCase()}
-              </span>
-            </div>
-            <h1 className={styles.eventName}>{ticket.eventName}</h1>
-          </div>
+    <div className={styles.pageWrapper}>
+      <div className={styles.glowTopRight} />
+      <div className={styles.glowBottomLeft} />
 
-          {/* Details Grid */}
-          <div className={styles.detailsGrid}>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Attendee</span>
-              <span className={styles.detailValue}>{ticket.attendeeName}</span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Date & Time</span>
-              <span className={styles.detailValue}>
-                {format(new Date(ticket.startDate), "EEE, MMM d, yyyy")} <br />
-                {format(new Date(ticket.startDate), "h:mm a")} ({ticket.timezone})
-              </span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Location</span>
-              <span className={styles.detailValue}>
-                {ticket.locationType === "online" ? "Virtual Event (Link attached to order)" : ticket.locationDetails}
-              </span>
-            </div>
-            <div className={styles.detailItem}>
-              <span className={styles.detailLabel}>Order Reference</span>
-              <span className={styles.detailValue}>{ticket.orderId}</span>
-            </div>
-          </div>
+      <div className={styles.machineWrapper}>
+        {/* 3D Machine Opening Slot Assembly */}
+        <div className={styles.slotContainer}>
+          {/* Top Metallic Lip (Overlaps the top of the emerging ticket) */}
+          <div className={styles.slotTopLip} />
 
-          <hr className={styles.divider} />
+          {/* Dark Inner Slot Mouth Cavity */}
+          <div className={styles.slotCavity} />
 
-          {/* QR Code Section */}
-          <div className={styles.qrSection}>
-            <div className={styles.qrWrapper}>
-              <QRCode
-                value={ticket.qrCode}
-                size={200}
-                level="H"
-                style={{ height: "auto", maxWidth: "100%", width: "100%" }}
-                fgColor={isInvalid ? "#999999" : "#000000"}
-              />
-              {isInvalid && (
-                <div className={styles.watermark}>
-                  {ticket.status === "checked-in" ? "CHECKED IN" : "CANCELLED"}
+          {/* Bottom Metallic Lip (Behind emerging ticket) */}
+          <div className={styles.slotBottomLip} />
+
+          {/* Viewport clipping ticket dispense motion */}
+          <div className={styles.ticketViewport}>
+            {error ? (
+              <PassError message={error} />
+            ) : ticket ? (
+              <motion.div
+                className={styles.ticketWrapper}
+                initial={{ y: "-100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{
+                  type: "spring",
+                  stiffness: 85,
+                  damping: 15,
+                  mass: 0.9,
+                }}
+                ref={ticketRef}
+              >
+                <div className={styles.passCard}>
+                  {/* Event Title & Ticket Type Pill */}
+                  <PassHeader
+                    eventTitle={ticket.event.title}
+                    ticketTypeName={ticket.ticketType.name}
+                  />
+
+                  {/* Attendee, Date & Time, Location Details */}
+                  <PassDetails attendee={ticket.attendee} event={ticket.event} />
+
+                  {/* Horizontal Perforation Divider with Inward SVG Bite Cutout Notches */}
+                  <div className={styles.perforationWrapper}>
+                    <svg width="12" height="24" viewBox="0 0 12 24" className={styles.notchLeftSvg}>
+                      <path d="M 0 0 A 12 12 0 0 1 0 24 Z" fill="var(--color-bg-base, #121316)" />
+                    </svg>
+
+                    <div className={styles.dashedLine} />
+
+                    <svg width="12" height="24" viewBox="0 0 12 24" className={styles.notchRightSvg}>
+                      <path d="M 12 0 A 12 12 0 0 0 12 24 Z" fill="var(--color-bg-base, #121316)" />
+                    </svg>
+                  </div>
+
+                  {/* QR Code Section below Perforation */}
+                  <PassQRCode
+                    ticketId={ticket.id}
+                    qrCode={ticket.qrCode}
+                    status={ticket.status}
+                  />
                 </div>
-              )}
-            </div>
-            <span className={styles.ticketId}>ID: {ticket.ticketId}</span>
-            <span className={styles.instructions}>
-              Present this code at the entrance for scanning.
-            </span>
+
+                {/* Serrated / Torn Paper Triangle Bottom Edge */}
+                <TornEdge />
+              </motion.div>
+            ) : null}
           </div>
-
         </div>
 
-        {/* Action Buttons (Hidden when printing) */}
-        <div className={styles.actions}>
-          <button className={styles.actionBtn} onClick={() => window.print()}>
-            Print Pass
-          </button>
-        </div>
+        {/* Download Pass Action */}
+        {!isLoading && ticket && (
+          <PassActions
+            handleDownload={() => {
+              downloadImg(ticketRef.current, ticket.event.title);
+            }}
+          />
+        )}
       </div>
     </div>
   );
