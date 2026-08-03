@@ -184,7 +184,7 @@
 
 .dashedLine {
   width: calc(100% - 28px);
-  border-top: 2.5px dashed #111827;
+  border-top: 2px dashed #111827;
   margin: 0 auto;
 }
 
