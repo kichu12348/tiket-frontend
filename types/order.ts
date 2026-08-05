@@ -38,9 +38,17 @@ export interface Ticket {
   updatedAt: string;
 }
 
+export interface RazorpayOrderData {
+  id: string;
+  amount: number;
+  currency: string;
+  keyId: string;
+}
+
 export interface CreateOrderResponse {
   order: Order;
   tickets: Ticket[];
+  razorpayOrder?: RazorpayOrderData | null;
 }
 
 export interface PayOrderResponse {

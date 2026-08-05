@@ -61,6 +61,10 @@ export const API_ENDPOINTS = {
     CREATE: `/api/orders`,
     PAY: (orderId: string) => `/api/orders/${orderId}/pay`,
   },
+  PAYMENTS: {
+    VERIFY: `/api/payments/verify`,
+    WEBHOOK: `/api/payments/webhook`,
+  },
   TEAM: {
     ROLES_CREATE: (eventId: string) => `/api/teams/${eventId}/roles`,
     ROLES_GET: (eventId: string) => `/api/teams/${eventId}/roles`,
@@ -69,6 +73,15 @@ export const API_ENDPOINTS = {
     MEMBERS_ADD: (eventId: string) => `/api/teams/${eventId}/members`,
     MEMBERS_GET: (eventId: string) => `/api/teams/${eventId}/members`,
     MEMBERS_DELETE: (eventId: string, memberId: string) => `/api/teams/${eventId}/members/${memberId}`,
+  },
+  ATTENDEES: {
+    GET_ALL: (eventId: string) => `/api/attendees/${eventId}`,
+    STATS: (eventId: string) => `/api/attendees/${eventId}/stats`,
+    GET_BY_ID: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}`,
+    TOGGLE_CHECKIN: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}/check-in`,
+    CANCEL: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}/cancel`,
+    MANUAL_REGISTER: (eventId: string) => `/api/attendees/${eventId}/manual-register`,
+    EXPORT: (eventId: string) => `/api/attendees/${eventId}/export`,
   },
 };
 

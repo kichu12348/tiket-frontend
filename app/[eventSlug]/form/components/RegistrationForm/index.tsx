@@ -144,6 +144,8 @@ export default function RegistrationForm({
         eventId: event.id,
         ticketTypeId: selectedTicketTypeId,
         formResponses,
+        userEmail: user?.email,
+        userName: user?.name,
       });
 
       setCreatedTicketId(createdTicketId);
@@ -151,7 +153,8 @@ export default function RegistrationForm({
     } catch (err: unknown) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const msg = (err as any)?.response?.data?.error
-        ?? "Something went wrong. Please try again.";
+        || (err as Error)?.message
+        || "Something went wrong. Please try again.";
       setErrorMessage(msg);
       setSubmitStep("error");
     }
