@@ -52,15 +52,14 @@ export async function generateViewport({
 
 export default async function EventPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const event = await getEventBySlug(resolvedParams.eventSlug);
-  if (!event) return notFound();
-
   const cookieStore = await cookies();
   const token = cookieStore.get(TOKEN_KEY)?.value;
-  let user = null;
-  if (token) {
-    user = await getMe(token);
-  }
+
+  const event = await getEventBySlug(resolvedParams.eventSlug, token);
+  if (!event) return notFound();
+
+  const user = token ? await getMe(token) : null;
+  const isAssociated = Boolean(event.isAssociated);
 
   const { formattedDate, formattedTime, monthShort, dayNumber } =
     formatEventDates(event.startDate, event.endDate);
@@ -176,7 +175,11 @@ export default async function EventPage({ params }: PageProps) {
             </div>
 
             {/* Registration Card Component */}
-            <RegistrationCard event={event} user={user} />
+            <RegistrationCard
+              event={event}
+              user={user}
+              isAssociated={isAssociated}
+            />
 
             {/* About Section */}
             <div className={styles.aboutSection}>

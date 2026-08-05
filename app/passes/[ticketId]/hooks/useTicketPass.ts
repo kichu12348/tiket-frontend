@@ -6,6 +6,7 @@ export function useTicketPass(ticketId: string | undefined) {
   const [ticket, setTicket] = useState<TicketPassData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [statusCode, setStatusCode] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     async function fetchTicket() {
@@ -13,6 +14,7 @@ export function useTicketPass(ticketId: string | undefined) {
 
       setIsLoading(true);
       setError(null);
+      setStatusCode(undefined);
 
       try {
         const data = await getTicketPass(ticketId);
@@ -20,10 +22,17 @@ export function useTicketPass(ticketId: string | undefined) {
           setTicket(data);
         } else {
           setError("Ticket pass not found.");
+          setStatusCode(404);
         }
       } catch (err: any) {
+        const status = err?.response?.status;
         const message =
-          err?.response?.data?.error || err?.message || "Failed to load ticket pass.";
+          err?.response?.data?.error ||
+          err?.response?.data?.message ||
+          err?.message ||
+          "Failed to load ticket pass.";
+
+        setStatusCode(status);
         setError(message);
       } finally {
         setIsLoading(false);
@@ -33,5 +42,5 @@ export function useTicketPass(ticketId: string | undefined) {
     fetchTicket();
   }, [ticketId]);
 
-  return { ticket, isLoading, error };
+  return { ticket, isLoading, error, statusCode };
 }

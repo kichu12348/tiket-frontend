@@ -30,16 +30,21 @@ export async function generateMetadata({
 
 export default async function RegistrationFormPage({ params }: PageProps) {
   const resolvedParams = await params;
-  const event = await getEventBySlug(resolvedParams.eventSlug);
+  const cookieStore = await cookies();
+  const token = cookieStore.get(TOKEN_KEY)?.value;
+
+  const event = await getEventBySlug(resolvedParams.eventSlug, token);
   if (!event) return notFound();
 
   // Auth gate — redirect unauthenticated users to sign in
-  const cookieStore = await cookies();
-  const token = cookieStore.get(TOKEN_KEY)?.value;
   const user = token ? await getMe(token) : null;
-
   if (!user) {
     redirect(`/signin?redirect=/${resolvedParams.eventSlug}/form`);
+  }
+
+  // Host / Team Member restriction gate — redirect associated team to event editor dashboard
+  if (event.isAssociated) {
+    redirect(`/edit/${event.id}`);
   }
 
   const [ticketTypes, formFields] = await Promise.all([

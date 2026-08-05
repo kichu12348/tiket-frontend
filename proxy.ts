@@ -23,6 +23,15 @@ export function proxy(request: NextRequest) {
     }
   }
 
+  // Redirect /edit/[eventId] to /edit/[eventId]/overview
+  const editMatch = pathname.match(/^\/edit\/([^\/]+)\/?$/);
+  if (editMatch) {
+    const eventId = editMatch[1];
+    return NextResponse.redirect(
+      new URL(`/edit/${eventId}/overview`, request.url)
+    );
+  }
+
   // Redirect signed-in users away from /signin
   if (pathname.startsWith("/signin")) {
     if (token) {

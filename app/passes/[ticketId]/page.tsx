@@ -17,7 +17,7 @@ export default function TicketPassPage() {
   const params = useParams();
   const ticketId = params?.ticketId as string | undefined;
 
-  const { ticket, isLoading, error } = useTicketPass(ticketId);
+  const { ticket, isLoading, error, statusCode } = useTicketPass(ticketId);
 
   const ticketRef = React.useRef<HTMLDivElement>(null);
 
@@ -41,7 +41,7 @@ export default function TicketPassPage() {
           {/* Viewport clipping ticket dispense motion */}
           <div className={styles.ticketViewport}>
             {error ? (
-              <PassError message={error} />
+              <PassError message={error} statusCode={statusCode} />
             ) : ticket ? (
               <motion.div
                 className={styles.ticketWrapper}

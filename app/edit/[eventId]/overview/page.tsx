@@ -20,14 +20,6 @@ import styles from "./Overview.module.css";
 export default function EditOverviewPage() {
   const { event } = useEventStore();
 
-  if (!event) return null;
-
-  const eventLink = `${window.location.origin}/${event.slug}`;
-  const totalCapacity = event.capacity || 0;
-  const registeredCount = 0; // Placeholder until backend supports registrations
-  const capacityPercentage =
-    totalCapacity > 0 ? (registeredCount / totalCapacity) * 100 : 0;
-
   const [hosts, setHosts] = useState<EventHost[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(true);
 
@@ -39,6 +31,17 @@ export default function EditOverviewPage() {
         .finally(() => setIsLoadingHosts(false));
     }
   }, [event?.id]);
+
+  if (!event) return null;
+
+  const eventLink =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/${event.slug}`
+      : `/${event.slug}`;
+  const totalCapacity = event.capacity || 0;
+  const registeredCount = 0; // Placeholder until backend supports registrations
+  const capacityPercentage =
+    totalCapacity > 0 ? (registeredCount / totalCapacity) * 100 : 0;
 
   const getLocationDisplay = () => {
     if (!event.locationDetails) return "TBA";

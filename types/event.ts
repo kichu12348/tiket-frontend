@@ -17,6 +17,7 @@ export interface Event {
   status: "draft" | "published" | "completed" | "cancelled";
   slug: string;
   organizationId: string;
+  isAssociated?: boolean;
   createdAt: string;
   updatedAt: string;
 }
