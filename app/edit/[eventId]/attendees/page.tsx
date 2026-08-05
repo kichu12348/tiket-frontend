@@ -95,6 +95,7 @@ export default function AttendeesPage() {
       {/* Attendee Detail Modal */}
       {selectedTicketId && (
         <AttendeeDetailModal
+          eventId={eventId}
           detail={attendeeDetail}
           isLoading={isDetailLoading}
           onClose={closeAttendeeDetail}

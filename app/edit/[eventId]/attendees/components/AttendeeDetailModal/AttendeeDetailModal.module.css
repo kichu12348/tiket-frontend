@@ -99,23 +99,6 @@
   border-radius: 8px;
 }
 
-.skeletonSection {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  padding-top: 0.5rem;
-}
-
-.skeletonHeader {
-  height: 1rem;
-  width: 130px;
-}
-
-.skeletonBox {
-  height: 48px;
-  border-radius: 8px;
-}
-
 .body {
   display: flex;
   flex-direction: column;
@@ -231,6 +214,58 @@
   gap: 0.5rem;
   padding-top: 0.5rem;
   border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+.accordionHeaderBtn {
+  background: rgba(255, 255, 255, 0.02);
+  border: none;
+  border-radius: var(--radius-sm, 8px);
+  padding: 0.65rem 0.8rem;
+  color: var(--text-primary, #ffffff);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  width: 100%;
+  font-family: inherit;
+  transition: background 0.2s ease;
+}
+
+.accordionHeaderBtn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.accordionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.accordionContent {
+  padding-top: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.inlineSkeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.skeletonAnswerBox {
+  height: 44px;
+  border-radius: 6px;
+}
+
+.noAnswersText {
+  font-size: 0.8rem;
+  color: var(--text-muted, rgba(255, 255, 255, 0.4));
+  font-style: italic;
+  padding: 0.2rem 0.4rem;
 }
 
 .sectionHeader {

@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   Mail,
@@ -8,12 +9,17 @@ import {
   ExternalLink,
   ClipboardList,
   Clock,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import Modal from "@/components/Modal";
-import { AttendeeDetailResponse } from "@/types/attendee";
+import { AttendeeDetailResponse, FormResponseItem } from "@/types/attendee";
+import { getAttendeeFormResponses } from "@/api/attendees";
+import { toast } from "sonner";
 import styles from "./AttendeeDetailModal.module.css";
 
 interface AttendeeDetailModalProps {
+  eventId: string;
   detail: AttendeeDetailResponse | null;
   isLoading: boolean;
   onClose: () => void;
@@ -22,6 +28,7 @@ interface AttendeeDetailModalProps {
 }
 
 export default function AttendeeDetailModal({
+  eventId,
   detail,
   isLoading,
   onClose,
@@ -29,6 +36,36 @@ export default function AttendeeDetailModal({
   onCancelTicket,
 }: AttendeeDetailModalProps) {
   const isOpen = !!detail || isLoading;
+
+  const [isResponsesExpanded, setIsResponsesExpanded] = useState(false);
+  const [formResponses, setFormResponses] = useState<FormResponseItem[] | null>(null);
+  const [isLoadingResponses, setIsLoadingResponses] = useState(false);
+
+  // Reset lazy state when detail ticket changes
+  useEffect(() => {
+    setIsResponsesExpanded(false);
+    setFormResponses(null);
+    setIsLoadingResponses(false);
+  }, [detail?.attendee.id]);
+
+  const handleToggleFormResponses = async () => {
+    if (!detail) return;
+    const nextState = !isResponsesExpanded;
+    setIsResponsesExpanded(nextState);
+
+    // Lazy load if expanding for the first time
+    if (nextState && formResponses === null) {
+      try {
+        setIsLoadingResponses(true);
+        const res = await getAttendeeFormResponses(eventId, detail.attendee.id);
+        setFormResponses(res.responses);
+      } catch (err: any) {
+        toast.error("Failed to load registration answers.");
+      } finally {
+        setIsLoadingResponses(false);
+      }
+    }
+  };
 
   return (
     <Modal
@@ -57,12 +94,6 @@ export default function AttendeeDetailModal({
               <div className={`${styles.skeleton} ${styles.skeletonMetaItem}`} />
               <div className={`${styles.skeleton} ${styles.skeletonMetaItem}`} />
               <div className={`${styles.skeleton} ${styles.skeletonMetaItem}`} />
-            </div>
-
-            {/* Answers Section Skeleton */}
-            <div className={styles.skeletonSection}>
-              <div className={`${styles.skeleton} ${styles.skeletonHeader}`} />
-              <div className={`${styles.skeleton} ${styles.skeletonBox}`} />
             </div>
           </div>
         ) : (
@@ -135,25 +166,50 @@ export default function AttendeeDetailModal({
               </div>
             </div>
 
-            {/* Registration Form Answers (if any) */}
-            {detail.responses && detail.responses.length > 0 && (
-              <div className={styles.section}>
-                <div className={styles.sectionHeader}>
+            {/* Lazy-Loaded Registration Form Answers Accordion */}
+            <div className={styles.section}>
+              <button
+                type="button"
+                onClick={handleToggleFormResponses}
+                className={styles.accordionHeaderBtn}
+              >
+                <div className={styles.accordionTitle}>
                   <ClipboardList size={15} />
-                  <h4>Registration Answers</h4>
+                  <span>Registration Form Answers</span>
                 </div>
-                <div className={styles.formResponseList}>
-                  {detail.responses.map((resp, idx) => (
-                    <div key={idx} className={styles.responseItem}>
-                      <span className={styles.responseLabel}>{resp.label}</span>
-                      <span className={styles.responseValue}>
-                        {resp.value || "(No answer)"}
-                      </span>
+                {isResponsesExpanded ? (
+                  <ChevronUp size={16} />
+                ) : (
+                  <ChevronDown size={16} />
+                )}
+              </button>
+
+              {isResponsesExpanded && (
+                <div className={styles.accordionContent}>
+                  {isLoadingResponses ? (
+                    <div className={styles.inlineSkeletonList}>
+                      <div className={`${styles.skeleton} ${styles.skeletonAnswerBox}`} />
+                      <div className={`${styles.skeleton} ${styles.skeletonAnswerBox}`} />
                     </div>
-                  ))}
+                  ) : formResponses && formResponses.length > 0 ? (
+                    <div className={styles.formResponseList}>
+                      {formResponses.map((resp, idx) => (
+                        <div key={idx} className={styles.responseItem}>
+                          <span className={styles.responseLabel}>{resp.label}</span>
+                          <span className={styles.responseValue}>
+                            {resp.value || "(No answer provided)"}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <span className={styles.noAnswersText}>
+                      No custom form responses for this ticket.
+                    </span>
+                  )}
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Check-In History */}
             {detail.checkIns && detail.checkIns.length > 0 && (

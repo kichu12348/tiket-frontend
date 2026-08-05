@@ -45,6 +45,8 @@ export interface AttendeeStatsData {
 }
 
 export interface FormResponseItem {
+  fieldId?: string;
+  fieldType?: string;
   label: string;
   value: string;
 }
@@ -60,8 +62,11 @@ export interface CheckInLog {
 
 export interface AttendeeDetailResponse {
   attendee: AttendeeItem;
-  responses: FormResponseItem[];
   checkIns: CheckInLog[];
+}
+
+export interface AttendeeFormResponsesResponse {
+  responses: FormResponseItem[];
 }
 
 export interface GetAttendeesResponse {

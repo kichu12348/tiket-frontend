@@ -4,6 +4,7 @@ import {
   GetAttendeesResponse,
   AttendeeStatsData,
   AttendeeDetailResponse,
+  AttendeeFormResponsesResponse,
   AttendeeFiltersState,
   ManualRegisterPayload,
   AttendeeItem,
@@ -41,6 +42,16 @@ export const getAttendeeDetail = async (
 ): Promise<AttendeeDetailResponse> => {
   const response = await api.get(
     API_ENDPOINTS.ATTENDEES.GET_BY_ID(eventId, ticketId),
+  );
+  return response.data;
+};
+
+export const getAttendeeFormResponses = async (
+  eventId: string,
+  ticketId: string,
+): Promise<AttendeeFormResponsesResponse> => {
+  const response = await api.get(
+    API_ENDPOINTS.ATTENDEES.FORM_RESPONSES(eventId, ticketId),
   );
   return response.data;
 };

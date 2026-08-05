@@ -78,6 +78,7 @@ export const API_ENDPOINTS = {
     GET_ALL: (eventId: string) => `/api/attendees/${eventId}`,
     STATS: (eventId: string) => `/api/attendees/${eventId}/stats`,
     GET_BY_ID: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}`,
+    FORM_RESPONSES: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}/form-responses`,
     TOGGLE_CHECKIN: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}/check-in`,
     CANCEL: (eventId: string, ticketId: string) => `/api/attendees/${eventId}/${ticketId}/cancel`,
     MANUAL_REGISTER: (eventId: string) => `/api/attendees/${eventId}/manual-register`,
