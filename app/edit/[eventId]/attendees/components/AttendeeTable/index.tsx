@@ -41,7 +41,8 @@ export default function AttendeeTable({
         </div>
         <h3 className={styles.emptyTitle}>No Attendees Found</h3>
         <p className={styles.emptySubtitle}>
-          There are no registered attendees matching your current search or filters.
+          There are no registered attendees matching your current search or
+          filters.
         </p>
       </div>
     );
@@ -156,7 +157,9 @@ export default function AttendeeTable({
                       disabled={isCancelled}
                       className={`${styles.checkInBtn} ${isCheckedIn ? styles.checkedIn : styles.notCheckedIn}`}
                       title={
-                        isCheckedIn ? "Click to undo check-in" : "Click to check-in"
+                        isCheckedIn
+                          ? "Click to undo check-in"
+                          : "Click to check-in"
                       }
                     >
                       <CheckCircle2 size={13} />
@@ -187,8 +190,8 @@ export default function AttendeeTable({
       {totalPages > 1 && (
         <div className={styles.pagination}>
           <span className={styles.paginationText}>
-            Showing {(page - 1) * limit + 1} to{" "}
-            {Math.min(page * limit, total)} of {total} attendees
+            Showing {(page - 1) * limit + 1} to {Math.min(page * limit, total)}{" "}
+            of {total} attendees
           </span>
           <div className={styles.paginationBtns}>
             <button
