@@ -99,6 +99,7 @@ export default function AttendeeTable({
             <tr>
               <th>Attendee</th>
               <th>Ticket Type</th>
+              <th>Price</th>
               <th>Registered</th>
               <th>Status</th>
               <th>Check-in Action</th>
@@ -126,14 +127,16 @@ export default function AttendeeTable({
 
                   {/* Ticket Type */}
                   <td>
-                    <div className={styles.ticketTypeCell}>
-                      <span className={styles.typeName}>
-                        {item.ticketType.name}
-                      </span>
-                      <span className={styles.typePrice}>
-                        ₹{item.ticketType.price}
-                      </span>
-                    </div>
+                    <span className={styles.typeName}>
+                      {item.ticketType.name}
+                    </span>
+                  </td>
+
+                  {/* Price */}
+                  <td>
+                    <span className={styles.typePrice}>
+                      ₹{item.ticketType.price}
+                    </span>
                   </td>
 
                   {/* Date */}

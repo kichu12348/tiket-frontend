@@ -3,7 +3,7 @@
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: none;
-  border-radius: var(--radius-lg, 16px);
+  border-radius: var(--radius-md);
   padding: 1rem 1.25rem;
   display: flex;
   flex-direction: column;
@@ -14,10 +14,13 @@
 .tableResponsive {
   width: 100%;
   overflow-x: auto;
+  scrollbar-color: var(--color-soft-bg) transparent;
+  scrollbar-width: thin;
 }
 
 .table {
   width: 100%;
+  min-width: 750px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -236,8 +239,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
   padding-top: 0.75rem;
   border-top: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.08));
+}
+
+@media (max-width: 640px) {
+  .tableCard {
+    padding: 0.85rem 0.75rem;
+  }
 }
 
 .paginationText {

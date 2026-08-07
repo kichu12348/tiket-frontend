@@ -1,4 +1,4 @@
-import { Users, UserCheck, DollarSign } from "lucide-react";
+import { Users, UserCheck, DollarSign, IndianRupee } from "lucide-react";
 import { AttendeeStatsData } from "@/types/attendee";
 import styles from "./AttendeeStats.module.css";
 
@@ -7,7 +7,10 @@ interface AttendeeStatsProps {
   isLoading: boolean;
 }
 
-export default function AttendeeStats({ stats, isLoading }: AttendeeStatsProps) {
+export default function AttendeeStats({
+  stats,
+  isLoading,
+}: AttendeeStatsProps) {
   if (isLoading || !stats) {
     return null;
   }
@@ -39,7 +42,9 @@ export default function AttendeeStats({ stats, isLoading }: AttendeeStatsProps) 
           <span className={styles.label}>Checked In</span>
           <div className={styles.valueRow}>
             <span className={styles.value}>{stats.checkedInCount}</span>
-            <span className={styles.percentBadge}>{checkInPercent}% checked in</span>
+            <span className={styles.percentBadge}>
+              {checkInPercent}% checked in
+            </span>
           </div>
         </div>
         <div className={styles.iconWrapperSuccess}>
@@ -53,13 +58,17 @@ export default function AttendeeStats({ stats, isLoading }: AttendeeStatsProps) 
           <span className={styles.label}>Total Revenue</span>
           <div className={styles.valueRow}>
             <span className={styles.value}>
-              ₹{stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              ₹
+              {stats.totalRevenue.toLocaleString(undefined, {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
             </span>
             <span className={styles.subtext}>Gross Sales</span>
           </div>
         </div>
         <div className={styles.iconWrapper}>
-          <DollarSign size={16} className={styles.icon} />
+          <IndianRupee size={16} className={styles.icon} />
         </div>
       </div>
     </div>
