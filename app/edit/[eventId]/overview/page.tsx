@@ -5,6 +5,8 @@ import { useEventStore } from "@/store/useEventStore";
 import { format } from "date-fns";
 import Link from "next/link";
 import { getEventHosts, EventHost } from "@/api/events";
+import { getAttendees } from "@/api/attendees";
+import { AttendeeItem } from "@/types/attendee";
 import {
   Calendar,
   MapPin,
@@ -23,12 +25,25 @@ export default function EditOverviewPage() {
   const [hosts, setHosts] = useState<EventHost[]>([]);
   const [isLoadingHosts, setIsLoadingHosts] = useState(true);
 
+  const [recentAttendees, setRecentAttendees] = useState<AttendeeItem[]>([]);
+  const [registeredCount, setRegisteredCount] = useState<number>(0);
+  const [isLoadingAttendees, setIsLoadingAttendees] = useState<boolean>(true);
+
   useEffect(() => {
     if (event?.id) {
       getEventHosts(event.id)
         .then(setHosts)
         .catch(console.error)
         .finally(() => setIsLoadingHosts(false));
+
+      setIsLoadingAttendees(true);
+      getAttendees(event.id, { limit: 5 })
+        .then((res) => {
+          setRecentAttendees(res.attendees || []);
+          setRegisteredCount(res.total || 0);
+        })
+        .catch(console.error)
+        .finally(() => setIsLoadingAttendees(false));
     }
   }, [event?.id]);
 
@@ -39,9 +54,10 @@ export default function EditOverviewPage() {
       ? `${window.location.origin}/${event.slug}`
       : `/${event.slug}`;
   const totalCapacity = event.capacity || 0;
-  const registeredCount = 0; // Placeholder until backend supports registrations
   const capacityPercentage =
-    totalCapacity > 0 ? (registeredCount / totalCapacity) * 100 : 0;
+    totalCapacity > 0
+      ? Math.min(100, Math.round((registeredCount / totalCapacity) * 100))
+      : 0;
 
   const getLocationDisplay = () => {
     if (!event.locationDetails) return "TBA";
@@ -167,7 +183,9 @@ export default function EditOverviewPage() {
         </div>
         <div>
           <div className={styles.glanceStats}>
-            <span className={styles.statLarge}>{registeredCount}</span>
+            <span className={styles.statLarge}>
+              {isLoadingAttendees ? "..." : registeredCount}
+            </span>
             <span className={styles.statTotal}>
               / {totalCapacity > 0 ? totalCapacity : "∞"}
             </span>
@@ -192,17 +210,61 @@ export default function EditOverviewPage() {
             </span>
           </div>
           <Link
-            href={`/edit/${event.id}/tickets`}
+            href={`/edit/${event.id}/attendees`}
             className={styles.btnSecondary}
           >
-            Manage Tickets
+            View All Attendees
           </Link>
         </div>
 
-        {/* Placeholder Empty State until Backend supports registrations */}
-        <div className={styles.emptyState}>
-          <Clock size={32} color="var(--border-strong)" />
-          <span className={styles.emptyStateText}>No registrations yet.</span>
+        <div className={styles.listContainer}>
+          {isLoadingAttendees ? (
+            <div className={styles.emptyState} style={{ padding: "1.5rem" }}>
+              <span className={styles.emptyStateText}>
+                Loading recent registrations...
+              </span>
+            </div>
+          ) : recentAttendees.length > 0 ? (
+            recentAttendees.map((item) => (
+              <div key={item.id} className={styles.listItem}>
+                <div className={styles.userInfo}>
+                  <div className={styles.avatar}>
+                    {item.user?.name ? item.user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <div className={styles.userDetails}>
+                    <span className={styles.userName}>
+                      {item.user?.name || "Attendee"}
+                    </span>
+                    <span className={styles.userEmail}>{item.user?.email}</span>
+                  </div>
+                </div>
+                <div className={styles.userMeta}>
+                  {item.ticketType?.name && (
+                    <span className={styles.ticketTypeBadge}>
+                      {item.ticketType.name}
+                    </span>
+                  )}
+                  <span
+                    className={`${styles.badge} ${
+                      item.status === "active" || item.status === "used"
+                        ? styles.success
+                        : styles.warning
+                    }`}
+                  >
+                    {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                  </span>
+                  <span className={styles.timeAgo}>
+                    {format(new Date(item.createdAt), "MMM d, h:mm a")}
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className={styles.emptyState}>
+              <Clock size={32} color="var(--border-strong)" />
+              <span className={styles.emptyStateText}>No registrations yet.</span>
+            </div>
+          )}
         </div>
       </div>
 
