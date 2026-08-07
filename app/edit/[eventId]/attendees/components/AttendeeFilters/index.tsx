@@ -79,24 +79,25 @@ export default function AttendeeFilters({
           )}
         </div>
 
-        {/* Radix UI Ticket Type Dropdown */}
-        <Dropdown
-          options={ticketTypeOptions}
-          value={filters.ticketTypeId}
-          onChange={(val) => onFilterChange({ ticketTypeId: val, page: 1 })}
-          placeholder="All Ticket Types"
-          className={styles.dropdown}
-        />
+        <div className={styles.dropdownsWrapper}>
+          {/* Radix UI Ticket Type Dropdown */}
+          <Dropdown
+            options={ticketTypeOptions}
+            value={filters.ticketTypeId}
+            onChange={(val) => onFilterChange({ ticketTypeId: val, page: 1 })}
+            placeholder="All Ticket Types"
+            className={styles.dropdown}
+          />
 
-        {/* Radix UI Ticket Status Dropdown */}
-        <Dropdown
-          options={statusOptions}
-          value={filters.status}
-          onChange={(val) => onFilterChange({ status: val, page: 1 })}
-          placeholder="All Statuses"
-          className={styles.dropdown}
-        />
-
+          {/* Radix UI Ticket Status Dropdown */}
+          <Dropdown
+            options={statusOptions}
+            value={filters.status}
+            onChange={(val) => onFilterChange({ status: val, page: 1 })}
+            placeholder="All Statuses"
+            className={styles.dropdown}
+          />
+        </div>
         {hasActiveFilters && (
           <button onClick={clearFilters} className={styles.resetBtn}>
             Reset Filters
