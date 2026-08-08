@@ -13,7 +13,6 @@ export interface EmailTemplate {
   type: EmailTemplateType;
   subject: string;
   body: string;
-  bodyJson?: Record<string, any> | null;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

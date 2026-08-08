@@ -17,6 +17,9 @@ interface DropdownProps<T> {
   onChange: (value: T) => void;
   placeholder?: string;
   className?: string;
+  triggerClassName?: string;
+  popoverClassName?: string;
+  variant?: "default" | "dark";
   popoverPosition?: "top" | "bottom";
   popoverAlign?: "left" | "right";
   renderTriggerContent?: (
@@ -39,6 +42,9 @@ export default function Dropdown<T>({
   onChange,
   placeholder = "Select an option",
   className,
+  triggerClassName,
+  popoverClassName,
+  variant = "default",
   popoverPosition = "bottom",
   popoverAlign = "left",
   renderTriggerContent,
@@ -58,13 +64,30 @@ export default function Dropdown<T>({
     alignSelf: alignSelf || "unset",
   };
 
+  const triggerClasses = [
+    styles.triggerBtn,
+    variant === "dark" ? styles.darkTrigger : "",
+    triggerClassName || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  const popoverClasses = [
+    styles.popover,
+    styles.scrollArea,
+    variant === "dark" ? styles.darkPopover : "",
+    popoverClassName || "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <div className={`${styles.container} ${className || ""}`} style={style}>
       <DropdownMenu.Root open={isOpen} onOpenChange={setIsOpen} modal={false}>
         <DropdownMenu.Trigger asChild>
           <button
             type="button"
-            className={styles.triggerBtn}
+            className={triggerClasses}
             data-empty={!selectedOption}
             style={{
               width: btnWidth,
@@ -98,7 +121,7 @@ export default function Dropdown<T>({
 
         <DropdownMenu.Portal>
           <DropdownMenu.Content
-            className={`${styles.popover} ${styles.scrollArea}`}
+            className={popoverClasses}
             side={popoverPosition}
             align={popoverAlign === "right" ? "end" : "start"}
             style={{
@@ -115,8 +138,7 @@ export default function Dropdown<T>({
                 <DropdownMenu.Item
                   key={`${String(option.value)}-${index}`}
                   asChild
-                  onSelect={(e) => {
-                    // Item automatically closes the menu on select
+                  onSelect={() => {
                     onChange(option.value);
                   }}
                 >
