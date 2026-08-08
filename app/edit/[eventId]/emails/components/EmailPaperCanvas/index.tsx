@@ -152,7 +152,7 @@ export default function EmailPaperCanvas({
 
   if (!editor) return null;
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.SubmitEvent) => {
     e.preventDefault();
     const compiledHtml = editor.getHTML();
 
