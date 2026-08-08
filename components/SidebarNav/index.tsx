@@ -37,8 +37,8 @@ export default function SidebarNav({ eventId }: SidebarNavProps) {
     { href: `/edit/${eventId}/tickets`, label: "Tickets", icon: Ticket },
     { href: `/edit/${eventId}/attendees`, label: "Attendees", icon: Users },
     { href: `/edit/${eventId}/forms`, label: "Forms", icon: ClipboardList },
-    { href: `/edit/${eventId}/settings`, label: "Settings", icon: Settings },
     { href: `/edit/${eventId}/team`, label: "Team", icon: UsersRound },
+    { href: `/edit/${eventId}/settings`, label: "Settings", icon: Settings },
   ];
 
   return (
