@@ -382,6 +382,12 @@ body::-webkit-scrollbar-thumb {
   border-radius: var(--scrollbar-radius);
 }
 
+/* Custom scrollbar utility class */
+.scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-soft-bg, rgba(255, 255, 255, 0.08)) transparent;
+}
+
 .popover::-webkit-scrollbar {
   display: none;
 }

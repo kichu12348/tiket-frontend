@@ -11,6 +11,7 @@ import {
   AppWindowMac,
   UsersRound,
   Users,
+  Mail,
 } from "lucide-react";
 import styles from "./SidebarNav.module.css";
 import { useSidebarStore } from "@/store/useSidebarStore";
@@ -37,6 +38,7 @@ export default function SidebarNav({ eventId }: SidebarNavProps) {
     { href: `/edit/${eventId}/tickets`, label: "Tickets", icon: Ticket },
     { href: `/edit/${eventId}/attendees`, label: "Attendees", icon: Users },
     { href: `/edit/${eventId}/forms`, label: "Forms", icon: ClipboardList },
+    { href: `/edit/${eventId}/emails`, label: "Emails", icon: Mail },
     { href: `/edit/${eventId}/team`, label: "Team", icon: UsersRound },
     { href: `/edit/${eventId}/settings`, label: "Settings", icon: Settings },
   ];

@@ -84,6 +84,15 @@ export const API_ENDPOINTS = {
     MANUAL_REGISTER: (eventId: string) => `/api/attendees/${eventId}/manual-register`,
     EXPORT: (eventId: string) => `/api/attendees/${eventId}/export`,
   },
+  EMAILS: {
+    TEMPLATES: (eventId: string) => `/api/emails/events/${eventId}/templates`,
+    TEMPLATE_BY_ID: (eventId: string, templateId: string) => `/api/emails/events/${eventId}/templates/${templateId}`,
+    RESET_TEMPLATE: (eventId: string, templateId: string) => `/api/emails/events/${eventId}/templates/${templateId}/reset`,
+    VARIABLES: (eventId: string) => `/api/emails/events/${eventId}/variables`,
+    SEND_TEST: (eventId: string) => `/api/emails/events/${eventId}/send-test`,
+    SEND_BATCH: (eventId: string) => `/api/emails/events/${eventId}/send-batch`,
+    LOGS: (eventId: string) => `/api/emails/events/${eventId}/logs`,
+  },
 };
 
 export interface ImageSrcOptions {
