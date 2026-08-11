@@ -11,8 +11,8 @@ export interface EmailTemplate {
   eventId: string;
   name: string;
   type: EmailTemplateType;
-  subject: string;
-  body: string;
+  subject?: string;
+  body?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

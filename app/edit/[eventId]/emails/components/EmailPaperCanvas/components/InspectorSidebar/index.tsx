@@ -110,8 +110,8 @@ export default function InspectorSidebar({
             onClick={onOpenCtaModal}
             title="Add Call-to-Action Button"
           >
-            <Plus size={13} />
-            <span>+ CTA</span>
+            <Plus size={13} strokeWidth={2.5} />
+            <span>CTA</span>
           </button>
         </div>
       </div>
@@ -510,9 +510,7 @@ export default function InspectorSidebar({
 
                 {/* Image Source URL */}
                 <div className={styles.inputFieldGroup}>
-                  <label className={styles.inputLabel}>
-                    Image Source URL
-                  </label>
+                  <label className={styles.inputLabel}>Image Source URL</label>
                   <input
                     type="text"
                     className={styles.inputControl}
@@ -658,9 +656,7 @@ export default function InspectorSidebar({
             </div>
 
             <div className={styles.inputFieldGroup}>
-              <label className={styles.inputLabel}>
-                Insert Dynamic Tags
-              </label>
+              <label className={styles.inputLabel}>Insert Dynamic Tags</label>
               <div className={styles.varsFlexWrap}>
                 {allVars.map((v) => (
                   <button

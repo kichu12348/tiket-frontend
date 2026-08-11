@@ -1,6 +1,6 @@
 import api from "@/lib/api";
 import { API_ENDPOINTS } from "@/constants/config";
-import {
+import type {
   EmailTemplate,
   AvailableVariables,
   SendTestEmailPayload,
@@ -12,6 +12,17 @@ export const getEmailTemplates = async (eventId: string): Promise<EmailTemplate[
   const response = await api.get(API_ENDPOINTS.EMAILS.TEMPLATES(eventId));
   return response.data;
 };
+
+export const getEmailTemplateById = async (
+  eventId: string,
+  templateId: string,
+): Promise<EmailTemplate> => {
+  const response = await api.get(
+    API_ENDPOINTS.EMAILS.TEMPLATE_BY_ID(eventId, templateId),
+  );
+  return response.data;
+};
+
 
 export const createEmailTemplate = async (
   eventId: string,

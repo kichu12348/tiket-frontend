@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useEventStore } from "@/store/useEventStore";
-import {
+import type {
   EmailTemplate,
   EmailTemplateType,
   AvailableVariables,
@@ -10,6 +10,7 @@ import {
 } from "@/types/email";
 import {
   getEmailTemplates,
+  getEmailTemplateById,
   getAvailableVariables,
   updateEmailTemplate,
   resetEmailTemplate,
@@ -27,26 +28,34 @@ import EmailPaperCanvas from "./components/EmailPaperCanvas";
 import SendTestModal from "./components/SendTestModal";
 import SendBatchModal from "./components/SendBatchModal";
 import EmailLogsTable from "./components/EmailLogsTable";
+import {
+  EmailPageSkeleton,
+  EmailEditorSkeleton,
+} from "./components/EmailSkeletonLoader";
 
 export default function EditEmailsPage() {
   const { event } = useEventStore();
   const [activeType, setActiveType] = useState<EmailTemplateType>("confirmation");
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [loadedTemplatesMap, setLoadedTemplatesMap] = useState<
+    Record<string, EmailTemplate>
+  >({});
   const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [variables, setVariables] = useState<AvailableVariables | null>(null);
   const [logs, setLogs] = useState<EmailLog[]>([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isTemplateLoading, setIsTemplateLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [isLogsLoading, setIsLogsLoading] = useState(false);
+  const [isLogsLoading] = useState(false);
 
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
 
-  // Fetch email data
-  const loadData = async (eventId: string) => {
+  // 1. Initial load: Fetch template types list, variables & logs
+  const loadInitialData = async (eventId: string) => {
     try {
-      setIsLoading(true);
+      setIsInitialLoading(true);
       const [tplData, varData, logData] = await Promise.all([
         getEmailTemplates(eventId),
         getAvailableVariables(eventId),
@@ -65,15 +74,44 @@ export default function EditEmailsPage() {
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to load email templates");
     } finally {
-      setIsLoading(false);
+      setIsInitialLoading(false);
     }
   };
 
   useEffect(() => {
     if (event?.id) {
-      loadData(event.id);
+      loadInitialData(event.id);
     }
   }, [event?.id]);
+
+  // 2. Lazy loading template content on demand when selected
+  const fetchTemplateOnDemand = useCallback(
+    async (eventId: string, templateId: string) => {
+      if (loadedTemplatesMap[templateId]) return;
+
+      try {
+        setIsTemplateLoading(true);
+        const fetched = await getEmailTemplateById(eventId, templateId);
+        setLoadedTemplatesMap((prev) => ({
+          ...prev,
+          [templateId]: fetched,
+        }));
+      } catch (err: any) {
+        toast.error(err.response?.data?.error || "Failed to load email template");
+      } finally {
+        setIsTemplateLoading(false);
+      }
+    },
+    [loadedTemplatesMap],
+  );
+
+  useEffect(() => {
+    if (event?.id && selectedTemplateId) {
+      if (!loadedTemplatesMap[selectedTemplateId]) {
+        fetchTemplateOnDemand(event.id, selectedTemplateId);
+      }
+    }
+  }, [event?.id, selectedTemplateId, loadedTemplatesMap, fetchTemplateOnDemand]);
 
   // When active category changes, select the first matching template
   const handleSelectType = (type: EmailTemplateType) => {
@@ -86,21 +124,27 @@ export default function EditEmailsPage() {
     }
   };
 
-  const currentTemplate = templates.find((t) => t.id === selectedTemplateId) || null;
+  const currentTemplate = selectedTemplateId
+    ? loadedTemplatesMap[selectedTemplateId] || null
+    : null;
 
   // Save template updates
   const handleSaveTemplate = async (updatedFields: Partial<EmailTemplate>) => {
-    if (!event?.id || !currentTemplate) return;
+    if (!event?.id || !selectedTemplateId) return;
     try {
       setIsSaving(true);
       const updated = await updateEmailTemplate(
         event.id,
-        currentTemplate.id,
+        selectedTemplateId,
         updatedFields,
       );
       setTemplates((prev) =>
         prev.map((t) => (t.id === updated.id ? updated : t)),
       );
+      setLoadedTemplatesMap((prev) => ({
+        ...prev,
+        [updated.id]: updated,
+      }));
       toast.success("Email template saved successfully!");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to save template");
@@ -111,13 +155,17 @@ export default function EditEmailsPage() {
 
   // Reset template to system defaults
   const handleResetTemplate = async () => {
-    if (!event?.id || !currentTemplate) return;
+    if (!event?.id || !selectedTemplateId) return;
     try {
       setIsSaving(true);
-      const reseted = await resetEmailTemplate(event.id, currentTemplate.id);
+      const reseted = await resetEmailTemplate(event.id, selectedTemplateId);
       setTemplates((prev) =>
         prev.map((t) => (t.id === reseted.id ? reseted : t)),
       );
+      setLoadedTemplatesMap((prev) => ({
+        ...prev,
+        [reseted.id]: reseted,
+      }));
       toast.success("Template reset to system default email layout!");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to reset template");
@@ -137,6 +185,10 @@ export default function EditEmailsPage() {
       });
 
       setTemplates((prev) => [...prev, newCustom]);
+      setLoadedTemplatesMap((prev) => ({
+        ...prev,
+        [newCustom.id]: newCustom,
+      }));
       setActiveType("custom");
       setSelectedTemplateId(newCustom.id);
       toast.success("New custom template created!");
@@ -147,13 +199,24 @@ export default function EditEmailsPage() {
 
   // Delete Custom Template
   const handleDeleteCustom = async () => {
-    if (!event?.id || !currentTemplate || currentTemplate.type !== "custom") return;
+    if (
+      !event?.id ||
+      !selectedTemplateId ||
+      !currentTemplate ||
+      currentTemplate.type !== "custom"
+    )
+      return;
     try {
-      await deleteCustomEmailTemplate(event.id, currentTemplate.id);
-      setTemplates((prev) => prev.filter((t) => t.id !== currentTemplate.id));
+      await deleteCustomEmailTemplate(event.id, selectedTemplateId);
+      setTemplates((prev) => prev.filter((t) => t.id !== selectedTemplateId));
+      setLoadedTemplatesMap((prev) => {
+        const next = { ...prev };
+        delete next[selectedTemplateId];
+        return next;
+      });
 
       const remainingCustom = templates.filter(
-        (t) => t.type === "custom" && t.id !== currentTemplate.id,
+        (t) => t.type === "custom" && t.id !== selectedTemplateId,
       );
       if (remainingCustom.length > 0) {
         setSelectedTemplateId(remainingCustom[0].id);
@@ -174,8 +237,8 @@ export default function EditEmailsPage() {
       const res = await sendTestEmail(event.id, {
         recipientEmail,
         recipientName: recipientName || undefined,
-        subject: currentTemplate.subject,
-        body: currentTemplate.body,
+        subject: currentTemplate.subject || "",
+        body: currentTemplate.body || "",
         templateId: currentTemplate.id,
       });
 
@@ -198,8 +261,8 @@ export default function EditEmailsPage() {
       const res = await sendBatchEmail(event.id, {
         targetGroup,
         customEmails,
-        subject: currentTemplate.subject,
-        body: currentTemplate.body,
+        subject: currentTemplate.subject || "",
+        body: currentTemplate.body || "",
         templateId: currentTemplate.id,
       });
 
@@ -221,10 +284,8 @@ export default function EditEmailsPage() {
         </p>
       </div>
 
-      {isLoading ? (
-        <div className={styles.loadingCard}>
-          <p className={styles.loadingText}>Loading email templates...</p>
-        </div>
+      {isInitialLoading ? (
+        <EmailPageSkeleton />
       ) : (
         <>
           <TemplateTypeSelector
@@ -252,8 +313,11 @@ export default function EditEmailsPage() {
             </div>
           )}
 
-          {currentTemplate ? (
+          {isTemplateLoading ? (
+            <EmailEditorSkeleton />
+          ) : currentTemplate ? (
             <EmailPaperCanvas
+              key={currentTemplate.id}
               template={currentTemplate}
               variables={variables}
               onSave={handleSaveTemplate}

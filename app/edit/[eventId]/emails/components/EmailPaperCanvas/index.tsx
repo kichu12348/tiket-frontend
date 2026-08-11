@@ -79,7 +79,7 @@ export default function EmailPaperCanvas({
   isSaving,
 }: EmailPaperCanvasProps) {
   const [name, setName] = useState(template.name);
-  const [subject, setSubject] = useState(template.subject);
+  const [subject, setSubject] = useState(template.subject || "");
   const [isActive, setIsActive] = useState(template.isActive);
   const [deviceView, setDeviceView] = useState<"desktop" | "mobile">("desktop");
   const [canvasMode, setCanvasMode] = useState<"edit" | "preview" | "code">(
@@ -138,9 +138,10 @@ export default function EmailPaperCanvas({
   // Sync external template updates safely
   useEffect(() => {
     setName(template.name);
-    setSubject(template.subject);
+    setSubject(template.subject || "");
     setIsActive(template.isActive);
   }, [template.name, template.subject, template.isActive]);
+
 
   useEffect(() => {
     if (editor && template.body) {

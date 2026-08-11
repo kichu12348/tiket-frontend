@@ -46,7 +46,7 @@ export default function EmailEditor({
     setIsActive(template.isActive);
   }, [template]);
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.SubmitEvent) => {
     e.preventDefault();
     await onSave({ name, subject, body, isActive });
   };
@@ -69,7 +69,8 @@ export default function EmailEditor({
             </span>
           </div>
           <p className={styles.subtitle}>
-            Compose and visually format automated or broadcast email templates for your attendees.
+            Compose and visually format automated or broadcast email templates
+            for your attendees.
           </p>
         </div>
 
@@ -108,11 +109,13 @@ export default function EmailEditor({
         </div>
 
         <div onClick={() => setFocusedField("body")}>
-          <EmailRichEditor
-            ref={richEditorRef}
-            value={body}
-            onChange={(html) => setBody(html)}
-          />
+          {body && (
+            <EmailRichEditor
+              ref={richEditorRef}
+              value={body}
+              onChange={(html) => setBody(html)}
+            />
+          )}
         </div>
       </div>
 

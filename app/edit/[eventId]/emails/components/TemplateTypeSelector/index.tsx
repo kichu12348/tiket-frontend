@@ -2,7 +2,15 @@
 
 import React from "react";
 import { EmailTemplateType, EmailTemplate } from "@/types/email";
-import { Mail, CheckCircle2, QrCode, Heart, AlertCircle, Plus, FileText } from "lucide-react";
+import {
+  Mail,
+  CheckCircle2,
+  QrCode,
+  Heart,
+  AlertCircle,
+  Plus,
+  FileText,
+} from "lucide-react";
 import styles from "./TemplateTypeSelector.module.css";
 
 interface TemplateTypeSelectorProps {
@@ -12,7 +20,12 @@ interface TemplateTypeSelectorProps {
   onCreateCustom: () => void;
 }
 
-const CATEGORIES: { type: EmailTemplateType; label: string; icon: React.ElementType; desc: string }[] = [
+const CATEGORIES: {
+  type: EmailTemplateType;
+  label: string;
+  icon: React.ElementType;
+  desc: string;
+}[] = [
   {
     type: "confirmation",
     label: "Confirmation",
@@ -64,13 +77,19 @@ export default function TemplateTypeSelector({
           const Icon = cat.icon;
           const isActive = activeType === cat.type;
           const count = templates.filter((t) => t.type === cat.type).length;
+          const isDisabled = cat.type === "custom";
 
           return (
             <button
               key={cat.type}
               className={styles.tabBtn}
               data-active={isActive}
+              disabled={isDisabled}
               onClick={() => onSelectType(cat.type)}
+              style={{
+                opacity: isDisabled ? 0.5 : 1,
+                cursor: isDisabled ? "not-allowed" : "pointer",
+              }}
             >
               <Icon size={16} className={styles.icon} />
               <div className={styles.labelCol}>
